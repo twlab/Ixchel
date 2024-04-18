@@ -1,0 +1,158 @@
+### Get set of cpgs shared by all samples/sets
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+# MethylGrapher
+zcat Sorted_RefOnly_*_CG.graph.methylC.gz | awk -F "\t" '{print $1"\t"$2"\t"$3}' | sort | uniq -c >SiteUnionCount.txt
+
+awk -F " " '{print $1}' SiteUnionCount.txt | sort | uniq -c
+
+ 613542 1
+ 615069 2
+ 453056 3
+ 580368 4
+ 425234 5
+ 603278 6
+ 847648 7
+ 2103106 8
+ 7716245 9
+42698913 10
+
+
+awk -F " " '{if($1=="10") print $2"\t"$3"\t"$4}' SiteUnionCount.txt >MethylGrapherCpGIntersect.txt
+
+
+
+# Bismark
+
+# copy methylC to HTCF
+ssh jmacias@10.20.127.5
+
+rsync -aHv --include='hg38.*.CG.methylC.gz' --include='*/' --exclude='*' /taproom/data/jmacias/HPRC_WGBS/methylCTracks/ juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/BismarkOutputs/
+
+sent 2,234,656,520 bytes  received 284 bytes  42,564,891.50 bytes/sec
+total size is 2,234,110,298  speedup is 1.00
+
+# cpg shared by all in bismark outputs
+
+cd /scratch/hllab/Juan/methylGrapher/BismarkOutputs/
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+
+
+zcat hg38.*.CG.methylC.gz | awk -F "\t" '{print $1"\t"$2"\t"$3}' | sort | uniq -c >hg38_SiteUnionCount.txt
+
+awk -F " " '{print $1}' hg38_SiteUnionCount.txt | sort | uniq -c
+
+  188306 1
+  154563 2
+  141943 3
+  197621 4
+  135665 5
+  149177 6
+  173020 7
+  277846 8
+  825540 9
+26683421 10
+
+awk -F " " '{if($1=="10") print $2"\t"$3"\t"$4}' hg38_SiteUnionCount.txt >BismarkCpGIntersect.txt
+
+
+# Intersect of CpGs across methods
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs
+mkdir CombineWithBismark
+cd CombineWithBismark/
+
+
+############### This methylC format from MethylGrapher is off!!! The end position is one position short
+
+awk -F "\t" '{print $1"\t"$2}' ../MethylGrapherCpGIntersect.txt >MethylGrapherSites.txt
+
+awk -F "\t" '{print $1"\t"$2}' ../../BismarkOutputs/BismarkCpGIntersect.txt >BismarkSites.txt
+
+cat MethylGrapherSites.txt BismarkSites.txt | sort | uniq -c >methods_SiteUnionCount.txt
+
+awk -F " " '{print $1}' methods_SiteUnionCount.txt | sort | uniq -c
+
+27672224 1
+20855055 2
+
+
+awk -F " " '{if($1=="2") print $2"\t"$3"\t"}' methods_SiteUnionCount.txt >MethodsCpGIntersect.txt
+
+exit
+
+### Filter Bismark outputs to all intersect
+
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/CombineWithBismark
+
+paste <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz") <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "MethodsCpGIntersect.txt"}') <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "AllIntersectSet_"$4}') <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "True"}') >BismarkFilteringParms.txt
+
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh BismarkFilteringParms.txt
+
+Submitted batch job 6103355
+
+mkdir Logs
+mv slurm-6103355_* Logs/
+
+
+### Filter MethylGrapher outputs to all intersect
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/CombineWithBismark
+
+paste <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz") <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz" | awk -F "/" '{print "MethodsCpGIntersect.txt"}') <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz" | awk -F "/" '{print "AllIntersectSet_"$7}') <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz" | awk -F "/" '{print "True"}')>MethylGrapherFilteringParms.txt
+
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh MethylGrapherFilteringParms.txt
+
+Submitted batch job 6103377
+
+mv slurm-6103377_* Logs/
+
+
+### Bin CpGs
+
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/CombineWithBismark
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+eval $( spack load --sh bedops@2.4.40 )
+
+# Make and sort bins
+cat ../../../ATACseq/Genomes/hg38/hg38.25_chromsome.sizes | grep -v "chrM" | awk -F "\t" '{print $1"\t"1"\t"$2}' | bedops --chop 3000 --stagger 3001 - >Bins_3kb.BED
+
+sort -k1,1 -k2,2n Bins_3kb.BED >Sorted_Bins_3kb.BED
+
+exit
+
+
+# Bin methylation (mean)
+paste <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "Sorted_Bins_3kb.BED"}') <(find . -type f -name "AllIntersectSet_*.methylC.gz")  <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "5"}') <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk -F "/" '{print "Binned_"$2}' | sed s/".gz"/""/g) >BinningParams.txt
+
+sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_BedtoolsMapMean.sh BinningParams.txt
+
+Submitted batch job 6103648
+
+mv slurm-6103648_* Logs/
+
+#Compress
+paste <(find . -type f -name "Binned_AllIntersectSet_*" | awk -F "/" '{print $2}') >Compress_BinnedMeans_Params.txt
+
+sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh Compress_BinnedMeans_Params.txt
+Submitted batch job 6103670
+
+mv slurm-6103670_* Logs/
+
+
+## R PCA
+
+cd /Users/juanmacias/Library/CloudStorage/Box-Box/LawsonLab/JuanMacias/Postdoc/methylGrapher
+
+# copy methylC files for all shared CpG sites to box
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/CombineWithBismark/ BenchmarkingSampleMethylGrapherOutputs/
+
+sent 1040 bytes  received 5799625670 bytes  1983795.69 bytes/sec
+total size is 5798206279  speedup is 1.00
+
+sent 1436 bytes  received 284852316 bytes  1905376.27 bytes/sec
+total size is 6082982122  speedup is 21.35

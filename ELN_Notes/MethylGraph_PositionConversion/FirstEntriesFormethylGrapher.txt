@@ -1,0 +1,318 @@
+SegmentID, SegmentPos (0 based), strand, context, unmethylated_count, methylated_count, coverage, mlevel
+
+22561340	137	+	CHH	1	0	1	0.0
+22561340	139	+	CHH	1	0	1	0.0
+22561340	141	+	CHH	1	0	1	0.0
+22561340	143	+	CHH	1	0	1	0.0
+22561340	144	+	CHH	1	0	1	0.0
+22561340	145	+	CHH	1	0	1	0.0
+22561340	146	+	CHG	1	0	1	0.0
+22561340	152	+	CHH	1	0	1	0.0
+22561340	160	+	CHG	1	0	1	0.0
+22561340	167	+	CHH	2	0	2	0.0
+
+
+### Compute 1
+cd /storage1/fs1/hprc/Active/wenjin/
+rsync -aHv bsb/HG00741/BRep1/graph.methyl juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/
+
+sent 33,558,392,586 bytes  received 91 bytes  229,067,526.81 bytes/sec
+total size is 33,550,201,496  speedup is 1.00
+
+rsync -aHv /storage1/fs1/hprc/Active/wenjin/ref/graph/GRCh38-f1g-90-mc-aug11.gfa.gz juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/
+
+sent 11,945,078,738 bytes  received 35 bytes  215,226,644.56 bytes/sec
+total size is 11,942,163,036  speedup is 1.00
+
+
+
+
+### HTCF
+
+cd /scratch/hllab/Juan/methylGrapher
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+grep "CG" graph.methyl >CG.graph.methyl
+
+gzip graph.methyl
+
+gzip CG.graph.methyl
+
+
+zcat GRCh38-f1g-90-mc-aug11.gfa.gz | awk -F "\t" '{if($1=="S") print $0}' >Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+grep "GRCh38" Segments.GRCh38-f1g-90-mc-aug11.gfa >RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+grep -v "GRCh38" Segments.GRCh38-f1g-90-mc-aug11.gfa >QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+zcat GRCh38-f1g-90-mc-aug11.gfa.gz | awk -F "\t" '{if($1=="L") print $0}' >Links.GRCh38-f1g-90-mc-aug11.gfa
+
+
+awk -F "\t" '{print "L\t"$2"\t"}' RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa | sort | uniq >LinkSearchKeys.txt
+
+grep -f LinkSearchKeys.txt Links.GRCh38-f1g-90-mc-aug11.gfa >RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa
+
+
+
+###Probe
+awk -F "\t" '{if($2=="9832") print $0}' RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+### Key files
+RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa
+
+RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+### Install python packages
+srun --mem=8000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+cd /ref/twlab/software
+
+eval $( spack load --sh python@3 )
+spack install py-numpy@1.21.3
+spack install py-dill@0.3.4
+spack install py-jsonpickle@1.4.1
+
+### Manual
+cd /scratch/hllab/Juan/methylGrapher/
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+eval $( spack load --sh python@3 )
+eval $( spack load --sh py-numpy/i7mcgz4 )
+eval $( spack load --sh py-jsonpickle@1.4.1 )
+eval $( spack load --sh py-dill@0.3.4 )
+
+python3 /scratch/hllab/Juan/General_Code/makeRefSegmentHashPickle.py RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
+
+### Automate
+cd /scratch/hllab/Juan/methylGrapher/
+sbatch /scratch/hllab/Juan/General_Code/run_makeRefSegmentHashPickle.sh RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
+
+Submitted batch job 5983502
+
+
+#sbatch /scratch/hllab/Juan/General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl
+#
+#Submitted batch job 5985381
+
+sbatch /scratch/hllab/Juan/General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl
+
+Submitted batch job 8416610
+
+
+
+
+
+
+head -n 10000 RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa >TESTSET.txt
+
+
+cd /scratch/hllab/Juan/methylGrapher/
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+eval $( spack load --sh python@3 )
+eval $( spack load --sh py-numpy/i7mcgz4 )
+eval $( spack load --sh py-jsonpickle@1.4.1 )
+eval $( spack load --sh py-dill@0.3.4 )
+
+python3 /scratch/hllab/Juan/General_Code/makeAnchorLinkHashPickle.py TESTSET.txt TEST.pkl
+
+
+
+
+awk -F "\t" '{if($2=="9933") print $0}' RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+awk -F "\t" '{if($2=="37372") print $0}' RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+
+
+
+
+
+
+### Do the thing
+
+cd /scratch/hllab/Juan/methylGrapher/
+
+
+zcat CG.graph.methyl.gz | head -n 20 >DEMODATA.txt
+
+zcat CG.graph.methyl.gz | tail -n 40 >DEMODATA2.txt
+
+cat DEMODATA.txt DEMODATA2.txt >DEMODATA3.txt
+
+
+srun --mem=100000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+eval $( spack load --sh python@3 )
+eval $( spack load --sh py-numpy/i7mcgz4 )
+eval $( spack load --sh py-jsonpickle@1.4.1 )
+eval $( spack load --sh py-dill@0.3.4 )
+
+python3 /scratch/hllab/Juan/General_Code/convertSegmentToRef.py DEMODATA3.txt RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl TESTOUTPUT.txt True
+
+
+
+
+sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh DEMODATA3.txt RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl TESTOUTPUT.txt True 
+Submitted batch job 6082677
+
+
+
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+gzip -d CG.graph.methyl.gz
+
+
+sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh CG.graph.methyl RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl CG.graph.methylC True
+
+
+Submitted batch job 6083360
+
+
+
+
+awk -F "\t" '{if($1!="False") print $0}' CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_CG.graph.methylC
+
+
+eval $( spack load --sh bedtools2@2.30.0 )
+eval $( spack load --sh samtools/wvf7267 )
+
+
+
+bedtools sort -i RefOnly_CG.graph.methylC >Sorted_RefOnly_CG.graph.methylC
+
+bgzip Sorted_RefOnly_CG.graph.methylC
+
+tabix -p bed Sorted_RefOnly_CG.graph.methylC.gz
+
+
+
+ssh jmacias@10.20.127.5
+
+cd /taproom/data/jmacias/
+
+mkdir methlyGrapher_Pilot
+
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/Sorted_RefOnly_CG.graph.methylC.* methlyGrapher_Pilot/
+
+sent 66 bytes  received 427,249,602 bytes  17,438,761.96 bytes/sec
+total size is 427,145,141  speedup is 1.00
+
+chmod 755 -R methlyGrapher_Pilot/
+
+ln -s /taproom/data/jmacias/methlyGrapher_Pilot ~/public_html/
+
+
+
+
+
+
+
+
+
+########### segment lengths
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+cd /scratch/hllab/Juan/methylGrapher/GraphStructureAnalysis
+
+awk -F "\t" '{print $0"\t"length($3) }' ../GraphFiles/QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa | awk '{print $0"\t"gsub(/C/, "", $3)}' | awk '{print $2"\t"$4"\t"$5"\t"gsub(/CG/, "", $3)}' >SegmentStats_NonRef.txt
+
+
+awk -F "\t" '{print $0"\t"length($3) }' ../GraphFiles/RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa | awk '{print $0"\t"gsub(/C/, "", $3)}' | awk '{print $2"\t"$7"\t"$8"\t"gsub(/CG/, "", $3)}' >SegmentStats_Ref.txt
+
+
+wc -l SegmentStats_NonRef.txt
+
+33306069 SegmentStats_NonRef.txt
+
+wc -l SegmentStats_Ref.txt
+
+48109887 SegmentStats_Ref.txt
+
+
+
+
+
+
+
+#### Visualize lengths
+
+cd /Users/juanmacias/Library/CloudStorage/Box-Box/LawsonLab/JuanMacias/Postdoc/methylGrapher
+
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/GraphStructureAnalysis/SegmentStats_* GraphStats/
+
+sent 60 bytes  received 2544476603 bytes  14836598.62 bytes/sec
+total size is 2543855341  speedup is 1.00
+
+
+
+
+## Cleanup
+cd /scratch/hllab/Juan/methylGrapher/
+
+mkdir GraphFiles
+
+mv LinkSearchKeys.txt GraphFiles/
+mv Links.GRCh38-f1g-90-mc-aug11.gfa GraphFiles/
+
+mv QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa GraphFiles/
+
+mv RefOnly_CG.graph.methylC GraphFiles/
+
+
+mv RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa GraphFiles/
+
+mv GRCh38-f1g-90-mc-aug11.gfa.gz  GraphFiles/
+
+mv RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl GraphFiles/
+
+mv RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa GraphFiles/
+
+mv RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl GraphFiles/
+
+mv Segments.GRCh38-f1g-90-mc-aug11.gfa GraphFiles/
+
+
+mkdir TESTING
+
+mv DEMODATA* TESTING/
+
+mv TESTOUTPUT.txt TESTING/
+
+mv slurm-* TESTING/
+
+mv CG.graph.methyl TESTING/
+
+mv CG.graph.methylC TESTING/
+
+
+mkdir GraphStructureAnalysis
+
+mv SegmentLengths_* GraphStructureAnalysis/
+
+mv Sorted_RefOnly_CG.graph.methylC.gz* TESTING/
+
+mv graph.methyl.gz TESTING/
+
+
+
+
+## Transfer to FTP
+
+
+
+
+## Softlink
+
+
+
+
+

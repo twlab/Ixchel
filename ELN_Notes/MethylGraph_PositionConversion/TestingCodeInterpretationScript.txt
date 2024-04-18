@@ -1,0 +1,25 @@
+
+## 1. Move to the appropriate directory
+cd /scratch/hllab/Juan/methylGrapher/GraphConversionStatistics
+
+## 2. Log into an interactive node with 32GB of memory and 1 CPU
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+## 3. Load the appropriate modules
+eval $( spack load --sh python@3 )
+
+## 4. Build the conversion code dictionary and pickle it
+python3 /scratch/hllab/Juan/General_Code/buildConversionCodeHashPickle.py
+
+    initializing dictionary
+    building conversion code dictionary
+    Pickling conversion code dictionary.
+    Done.
+
+## 5. Run the conversion code interpreter
+python3 /scratch/hllab/Juan/General_Code/interpretConversionCode.py 1
+
+    True	False	False	False	False	False	False
+
+python3 /scratch/hllab/Juan/General_Code/interpretConversionCode.py 3
+    True	True	False	False	False	False	False

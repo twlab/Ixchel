@@ -1,0 +1,144 @@
+
+
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations
+
+srun --mem=64000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+
+# Combine split pieces
+cat Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*_converted.methylC >Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC
+
+ls -lh Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC
+
+-rw-rw-r-- 1 juanfmacias hllab 54G Oct 29 12:42 Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC
+
+
+
+# Sort, merge, and count segmental entries
+cat Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC | awk -F "\t" '{print $1"\t"$15"\t"$8"\t"$9"\t"$10"\t"$11"\t"$12"\t"$13"\t"$14}' | sort | uniq -c | sed -e 's/^ *//;s/ /\t/' >CytosineContexts.txt 
+
+
+# Look at sizes of output
+du -sh CytosineContexts.txt 
+
+2.2G	CytosineContexts.txt
+
+wc -l CytosineContexts.txt 
+
+37,124,393 CytosineContexts.txt
+
+
+exit
+
+
+
+## Copy to box
+
+
+cd /Users/juanmacias/Library/CloudStorage/Box-Box/LawsonLab/JuanMacias/Postdoc/
+
+cd MethylGrapher/
+
+mkdir ConversionContextStatistics
+
+cd ConversionContextStatistics
+
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/CytosineContexts.txt CytosineContexts.txt
+
+
+sent 243911 bytes  received 1370566917 bytes  13505525.40 bytes/sec
+total size is 2316644702  speedup is 1.69
+
+
+
+
+
+
+# Count up total number of segments
+All.Seg.Length<-nrow(CytosineContexts)
+All.Seg.Length
+
+37124393
+
+# Count up how many segments are reference
+isReference.Seg.Length<-nrow(subset(CytosineContexts, isReferenceSegment == "True"))
+100*round(isReference.Seg.Length/All.Seg.Length,3)
+
+76.5
+
+# Filter out any segments that are not in the Alt or Ref sets. If not zero, indicates a bug somewhere and is just a sanity check
+isAltFAIL.Seg.Length<-nrow(subset(FilteredSegments, isAltSegment == "False"))
+100*round(isAltFAIL.Seg.Length/All.Seg.Length,3)
+
+0
+
+FilteredSegments<-subset(CytosineContexts, isAltSegment == "True")
+isAltPASS.Seg.Length<-nrow(FilteredSegments)
+100*round(isAltPASS.Seg.Length/All.Seg.Length,3)
+
+23.5
+
+# Filter out any segments which do not have an anchor
+hasAnchorFAIL.Seg.Length<-nrow(subset(FilteredSegments, hasAnchorSegment == "False"))
+100*round(hasAnchorFAIL.Seg.Length/All.Seg.Length,3)
+
+9
+
+FilteredSegments<-subset(FilteredSegments, hasAnchorSegment == "True")
+hasAnchorPASS.Seg.Length<-nrow(FilteredSegments)
+100*round(hasAnchorPASS.Seg.Length/All.Seg.Length,3)
+
+14.5
+
+# Filter out any segments which do not have a double anchor
+hasDoubleAnchorFAIL.Seg.Length<-nrow(subset(FilteredSegments, hasDoubleAnchor == "True"))
+100*round(hasDoubleAnchorFAIL.Seg.Length/All.Seg.Length,3)
+
+0.3
+
+FilteredSegments<-subset(FilteredSegments, hasDoubleAnchor == "False")
+hasDoubleAnchorPASS.Seg.Length<-nrow(FilteredSegments)
+100*round(hasDoubleAnchorPASS.Seg.Length/All.Seg.Length,3)
+
+14.2
+
+
+> 100*round(isSyntenicRefSegmentSameLength.AND.LengthLT3bp.Seg.Length/All.Seg.Length,3)
+[1] 12.8
+> 100*round(isSyntenicRefSegmentSameLength.AND.NotLengthLT3bp.Seg.Length/All.Seg.Length,3)
+[1] 0.1
+> 
+> 100*round(notSyntenicRefSegmentSameLength.AND.LengthLT3bp.Seg.Length/All.Seg.Length,3)
+[1] 0.7
+> 100*round(notSyntenicRefSegmentSameLength.AND.NotLengthLT3bp.Seg.Length/All.Seg.Length,3)
+[1] 0.6
+> nrow(CytosineContexts)
+[1] 37124393
+
+
+
+### Upset plot
+
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+
+mkdir ConvertibilityContextStatistics
+
+cd ConvertibilityContextStatistics
+
+sbatch /scratch/hllab/Juan/General_Code/R_Scripts/methylGrapher/run_Cytosine_Conversion_Upset.sh /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/CytosineContexts.txt 
+
+Submitted batch job 9351780
+
+
+
+cd /Users/juanmacias/Library/CloudStorage/Box-Box/LawsonLab/JuanMacias/Postdoc/MethylGrapher/ConversionContextStatistics
+
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/GraphFiles/ConvertibilityContextStatistics/SegmentConvertabilityContextUpsetPlot.png SegmentConvertabilityContextUpsetPlot.png
+
+sent 2114 bytes  received 249312 bytes  38680.92 bytes/sec
+total size is 251172  speedup is 1.00
+
+
+
+
+

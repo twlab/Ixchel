@@ -1,0 +1,288 @@
+
+####### The purpose of this entry is to prepare all of the WGBS data for the benchmarking samples for PCA and running the PCA.
+# the samples are as follows:
+# HG00621, HG00741, HG01952, HG01978, HG03516
+# with two replicates each
+# each sample is processed against each of the following references:
+# hg38, chm13, maternal, paternal, or pangenome
+# I need to make sure I have the right replicate parings
+
+# 1. Take the union of all CG's in methylGrapher samples
+# 2. Take the union of all CG's in bismark hg38 samples
+# 3. Find the intersection of the two sets
+# 4. For each sample, remove all CG's that are not in the intersection
+# 5. Make and sort bins saved as a bed file
+# 6. Bin the data into 3000 bp bins using bins bed file and bedtools intersect
+# 7. Copy to box
+# 8. Run PCA on box in R
+
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/
+
+
+
+
+##### 1. Take the union of all CG's in methylGrapher samples
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+# use the cut command to pull the first 3 columns in a tab delimited file. Then sort and uniq -c to get the union of all CG's.
+cut -f 1-3 -d $'\t' HG0*/BRep*/CG.graph.Precomputed.methylC | sort | uniq -c > MG_SiteUnionCount.txt
+exit
+
+
+
+
+##### 2. Take the union of all CG's in bismark hg38 samples
+# This has been done previously and saved as:
+# /scratch/hllab/Juan/methylGrapher/BismarkOutputs/hg38_SiteUnionCount.txt
+# The code used to generate this file is described in the code entry: "PreparingForPCA_onRefSegmentsOnly.txt"
+
+
+
+
+##### 3. Find the intersection of the two sets
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan
+mkdir PrepForPCA
+
+# move files to PrepForPCA/
+cp /scratch/hllab/Juan/methylGrapher/BismarkOutputs/hg38_SiteUnionCount.txt PrepForPCA/
+mv MG_SiteUnionCount.txt PrepForPCA/MG_SiteUnionCount.txt
+
+cd PrepForPCA/
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+# Find the set of sites shared by all sample/replicates in each method and standardize chromosome names
+awk -F " " '{if ($1==10) print $2"\t"$3"\t"}' hg38_SiteUnionCount.txt > hg38_Intersect_Sites.txt
+awk -F " " '{if ($1==10) print $2"\t"$3"\t"}' MG_SiteUnionCount.txt | sed s/"GRCh38."/""/g > MG_Intersect_Sites.txt
+
+# Find the intersection of the two sets
+cat MG_Intersect_Sites.txt hg38_Intersect_Sites.txt | sort | uniq -c > methods_SiteUnionCount.txt
+
+# How many sites are shared by all samples/replicates but different between methods?
+awk -F " " '{print $1}' methods_SiteUnionCount.txt | sort | uniq -c
+
+28309964 1
+21385953 2
+
+# Intersect sites
+awk -F " " '{if($1=="2") print $2"\t"$3"\t"}' methods_SiteUnionCount.txt >MethodsCpGIntersect.txt
+
+
+
+
+##### 4. For each sample, remove all CG's that are not in the intersection
+
+# Filter Bismark outputs to all intersect
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/PrepForPCA
+
+mkdir FilteredBismarkOutputs
+
+# make params files
+paste <(find /scratch/hllab/Juan/methylGrapher/BismarkOutputs/ -type f -name "hg38.*methylC.gz") <(find /scratch/hllab/Juan/methylGrapher/BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "MethodsCpGIntersect.txt"}') <(find /scratch/hllab/Juan/methylGrapher/BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "AllIntersectSet_"$7}') <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "True"}') >BismarkFilteringParms.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/HG0* -type f -name "*.Precomputed.methylC") <(find /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/HG0* -type f -name "*.Precomputed.methylC" | awk -F "/" '{print "MethodsCpGIntersect.txt"}') <(find /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/HG0* -type f -name "*.Precomputed.methylC" | awk -F "/" '{print "AllIntersectSet_"$7"_"$8"_"$9}') <(find /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/HG0* -type f -name "*.Precomputed.methylC" | awk -F "/" '{print "False"}') >MGFilteringParms.txt
+
+cat BismarkFilteringParms.txt MGFilteringParms.txt >FilteringParms.txt
+
+# How many jobs will I need?
+wc -l FilteringParms.txt
+    20 FilteringParms.txt
+
+# run jobs
+sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh FilteringParms.txt
+
+Submitted batch job 9869001
+
+# clean up
+mkdir Logs
+mkdir Logs/Filtering
+mv slurm* Logs/Filtering/
+
+# gzip all MG filtered files
+find . -type f -name "*CG.graph.Precomputed.methylC" | awk -F "/" '{print $2}' >MG_Compression.Params.txt
+
+# How many jobs will I need?
+wc -l MG_Compression.Params.txt
+    10 MG_Compression.Params.txt
+
+# run jobs
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh MG_Compression.Params.txt
+
+Submitted batch job 9869023
+
+# clean up
+mkdir Logs/Compression
+mv slurm* Logs/Compression/
+
+
+
+
+##### 5. Make and sort bins saved as a bed file
+# I will use the same bins as I used for the PCA on the reference segments only
+# I will copy the bins file from the PCA on reference segments only to this directory
+# Found here: /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/CombineWithBismark/Sorted_Bins_3kb.BED
+cp /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/CombineWithBismark/Sorted_Bins_3kb.BED .
+
+
+
+
+##### 6. Bin the data into 3000 bp bins using bins bed file and bedtools intersect
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/PrepForPCA
+
+# naming of chromosomes needs to be standardized by removing "GRCh38." from the beginning of each chromosome name in the Precomputed.methylC files
+zcat AllIntersectSet_HG00621_BRep1_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG00621_BRep1_CG.graph.Precomputed.methylC
+zcat AllIntersectSet_HG00621_BRep2_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG00621_BRep2_CG.graph.Precomputed.methylC
+
+zcat AllIntersectSet_HG00741_BRep1_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG00741_BRep1_CG.graph.Precomputed.methylC
+zcat AllIntersectSet_HG00741_BRep2_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG00741_BRep2_CG.graph.Precomputed.methylC
+
+zcat AllIntersectSet_HG01952_BRep1_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG01952_BRep1_CG.graph.Precomputed.methylC
+zcat AllIntersectSet_HG01952_BRep2_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG01952_BRep2_CG.graph.Precomputed.methylC
+
+zcat AllIntersectSet_HG01978_BRep1_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG01978_BRep1_CG.graph.Precomputed.methylC
+zcat AllIntersectSet_HG01978_BRep2_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG01978_BRep2_CG.graph.Precomputed.methylC
+
+zcat AllIntersectSet_HG03516_BRep1_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG03516_BRep1_CG.graph.Precomputed.methylC
+zcat AllIntersectSet_HG03516_BRep2_CG.graph.Precomputed.methylC.gz | sed s/"GRCh38."//g | cut -f 1-7 >AllIntersectSet_HG03516_BRep2_CG.graph.Precomputed.methylC
+
+# remove old ones
+rm *.Precomputed.methylC.gz
+
+# compress files again
+find . -type f -name "*CG.graph.Precomputed.methylC" | awk -F "/" '{print $2}' >MG_ReCompression.Params.txt
+
+# How many jobs will I need?
+wc -l MG_ReCompression.Params.txt
+    10 MG_ReCompression.Params.txt
+
+# run jobs
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh MG_ReCompression.Params.txt
+
+Submitted batch job 9869094
+
+# clean up
+mkdir Logs/PostFilterCompression
+mv slurm* Logs/PostFilterCompression/
+
+# re-bedtools sort Preomputed.methylC files, make params files
+paste <(find . -type f -name "*CG.graph.Precomputed.methylC.gz" | awk -F "/" '{print $2}') <(find . -type f -name "*CG.graph.Precomputed.methylC.gz" | awk -F "/" '{print "Sorted_"$2}' | sed s/".gz"//g ) >BedtoolsSortParams.txt
+
+# How many jobs will I need?
+wc -l BedtoolsSortParams.txt
+    10 BedtoolsSortParams.txt
+
+# run jobs
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_Bedtools_Sort.sh BedtoolsSortParams.txt
+
+Submitted batch job 9869188
+
+# clean up
+mkdir Logs/PostFilterSort
+mv slurm* Logs/PostFilterSort/
+
+# remove old files
+rm *.Precomputed.methylC.gz
+
+# rename files to remove "Sorted_" from the beginning of the file name
+paste <(find . -type f -name "Sorted_*.methylC" | awk -F "/" '{print $2}') <(find . -type f -name "Sorted_*.methylC" | awk -F "/" '{print $2}' | sed s/"Sorted_"//g) >MG_Rename.Params.txt
+
+# How many jobs will I need?
+wc -l MG_Rename.Params.txt
+    10 MG_Rename.Params.txt
+
+# run jobs
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_Move_Specific.sh MG_Rename.Params.txt
+
+Submitted batch job 9869198
+
+# clean up
+mkdir Logs/PostFilterRename
+mv slurm* Logs/PostFilterRename/
+
+# compress files again
+find . -type f -name "*CG.graph.Precomputed.methylC" | awk -F "/" '{print $2}' >MG_FinalCompression.Params.txt
+
+# How many jobs will I need?
+wc -l MG_FinalCompression.Params.txt
+    10 MG_FinalCompression.Params.txt
+
+# run jobs
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh MG_FinalCompression.Params.txt
+
+Submitted batch job 9869208
+
+# clean up
+mkdir Logs/PostFilterFinalCompression
+mv slurm* Logs/PostFilterFinalCompression/
+
+# make params files
+paste <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "Sorted_Bins_3kb.BED"}') <(find . -type f -name "AllIntersectSet_*.methylC.gz") <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "5"}') <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk -F "/" '{print "Binned_"$2}' | sed s/".gz"/""/g) >BinningParams.txt
+
+# How many jobs will I need?
+
+wc -l BinningParams.txt
+    20 BinningParams.txt
+
+sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_BedtoolsMapMean.sh BinningParams.txt
+
+Submitted batch job 9869218
+
+# clean up
+mkdir Logs/Binning
+mv slurm* Logs/Binning/
+
+mkdir UnbinnedFilteredOutputs
+mv AllIntersectSet* UnbinnedFilteredOutputs/
+
+# compress binned files
+paste <(find . -type f -name "Binned_AllIntersectSet_*" | awk -F "/" '{print $2}') >Compress_BinnedMeans_Params.txt
+
+# How many jobs will I need?
+wc -l Compress_BinnedMeans_Params.txt
+    20 Compress_BinnedMeans_Params.txt
+
+# run jobs
+sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh Compress_BinnedMeans_Params.txt
+Submitted batch job 9869238
+
+# clean up
+mkdir Logs/Compress_BinnedMeans
+mv slurm* Logs/Compress_BinnedMeans/
+
+mkdir BinnedOutputs
+mv Binned_* BinnedOutputs/
+
+mkdir params
+mv *.Params.txt params/
+mv BedtoolsSortParams.txt params/
+mv BinningParams.txt params/
+mv Compress_BinnedMeans_Params.txt params/
+mv FilteringParms.txt params/
+mv BismarkFilteringParms.txt params/
+mv MGFilteringParms.txt params/
+
+mkdir Sites
+mv hg38_Intersect_Sites.txt Sites/
+mv hg38_SiteUnionCount.txt Sites/
+mv MethodsCpGIntersect.txt Sites/
+mv methods_SiteUnionCount.txt Sites/
+mv MG_Intersect_Sites.txt Sites/
+mv MG_SiteUnionCount.txt Sites/
+
+
+
+
+##### 7. Copy to box
+cd /Users/juanmacias/Library/CloudStorage/Box-Box/LawsonLab/JuanMacias/Postdoc/MethylGrapher/
+
+mkdir BenchmarkingSamplesOutputsLatest/
+
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan/PrepForPCA/BinnedOutputs/ BenchmarkingSamplesOutputsLatest/
+
+    sent 462 bytes  received 231885977 bytes  10785415.77 bytes/sec
+    total size is 231827502  speedup is 1.00
+
+
+
+
+##### 8. Run PCA on box in R
+/Users/juanmacias/Library/CloudStorage/Box-Box/LawsonLab/JuanMacias/Postdoc/MethylGrapher/Compare.R

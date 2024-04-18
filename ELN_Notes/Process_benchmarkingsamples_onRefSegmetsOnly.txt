@@ -1,0 +1,104 @@
+#### Process all real benchmarking data on reg segments only
+cd /scratch/hllab/Juan/methylGrapher
+
+
+## Copy data over
+
+
+# Compute 1
+cd /storage1/fs1/hprc/Active/wenjin/
+
+rsync -aHv --include='/HG0**/BRep*/graph.methyl' --include='*/' --exclude='*' bsb/ juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs
+
+sent 331,603,130,630 bytes  received 724 bytes  224,739,499.39 bytes/sec
+total size is 331,522,188,946  speedup is 1.00
+
+
+
+
+## Subset out CG context
+
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs
+
+grep "CG" ./HG00741/BRep2/graph.methyl >./HG00741/BRep2/CG.graph.methyl
+grep "CG" ./HG00741/BRep1/graph.methyl >./HG00741/BRep1/CG.graph.methyl
+
+grep "CG" ./HG03516/BRep2/graph.methyl >./HG03516/BRep2/CG.graph.methyl
+grep "CG" ./HG03516/BRep1/graph.methyl >./HG03516/BRep1/CG.graph.methyl
+
+grep "CG" ./HG01978/BRep2/graph.methyl >./HG01978/BRep2/CG.graph.methyl
+grep "CG" ./HG01978/BRep1/graph.methyl >./HG01978/BRep1/CG.graph.methyl
+
+grep "CG" ./HG00621/BRep2/graph.methyl >./HG00621/BRep2/CG.graph.methyl
+grep "CG" ./HG00621/BRep1/graph.methyl >./HG00621/BRep1/CG.graph.methyl
+
+grep "CG" ./HG01952/BRep2/graph.methyl >./HG01952/BRep2/CG.graph.methyl
+grep "CG" ./HG01952/BRep1/graph.methyl >./HG01952/BRep1/CG.graph.methyl
+
+
+## Convert to methylC
+
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs
+
+
+paste <(find . -type f -name "CG.graph.methyl") <(find . -type f -name "CG.graph.methyl" | awk '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') <(find . -type f -name "CG.graph.methyl" | awk '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl"}') <(find . -type f -name "CG.graph.methyl" | awk -F "/" '{print $2"_"$3"_CG.graph.methylC"}') <(find . -type f -name "CG.graph.methyl" | awk '{print "True"}') >ConvertGraphToMethylC_Params.txt
+
+sbatch --array=1-10%2 /scratch/hllab/Juan/General_Code/run_Batch_convertSegmentToRef.sh ConvertGraphToMethylC_Params.txt
+
+Submitted batch job 6098198
+
+mkdir Logs
+mv slurm-6098198_* Logs/
+
+## Subset out reference only
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+awk -F "\t" '{if($1!="False") print $0}' HG00621_BRep1_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG00621_BRep1_CG.graph.methylC
+awk -F "\t" '{if($1!="False") print $0}' HG00621_BRep2_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG00621_BRep2_CG.graph.methylC
+
+awk -F "\t" '{if($1!="False") print $0}' HG00741_BRep1_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG00741_BRep1_CG.graph.methylC
+awk -F "\t" '{if($1!="False") print $0}' HG00741_BRep2_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG00741_BRep2_CG.graph.methylC
+
+awk -F "\t" '{if($1!="False") print $0}' HG01952_BRep1_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG01952_BRep1_CG.graph.methylC
+awk -F "\t" '{if($1!="False") print $0}' HG01952_BRep2_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG01952_BRep2_CG.graph.methylC
+
+awk -F "\t" '{if($1!="False") print $0}' HG01978_BRep1_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG01978_BRep1_CG.graph.methylC
+awk -F "\t" '{if($1!="False") print $0}' HG01978_BRep2_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG01978_BRep2_CG.graph.methylC
+
+awk -F "\t" '{if($1!="False") print $0}' HG03516_BRep1_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG03516_BRep1_CG.graph.methylC
+awk -F "\t" '{if($1!="False") print $0}' HG03516_BRep2_CG.graph.methylC | sed s/"GRCh38."/""/g >RefOnly_HG03516_BRep2_CG.graph.methylC
+
+exit
+
+## Sort
+cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs
+
+paste <(find . -type f -name "RefOnly_*.methylC" | awk -F "/" '{print $2}') <(find . -type f -name "RefOnly_*.methylC" | awk -F "/" '{print "Sorted_"$2}') >SortParams.txt
+
+
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_Bedtools_Sort.sh SortParams.txt
+
+Submitted batch job 6101205
+
+## Compress
+mv slurm-6101205_* Logs/
+
+paste <(find . -type f -name "Sorted_RefOnly_*.methylC" | awk -F "/" '{print $2}') >CompressParams.txt
+
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh CompressParams.txt
+
+Submitted batch job 6101220
+
+mv slurm-6101220_* Logs/
+
+
+## Index
+paste <(find . -type f -name "Sorted_RefOnly_*.methylC.gz" | awk -F "/" '{print $2}') >IndexParams.txt
+
+sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_tabix_bed.sh IndexParams.txt
+
+Submitted batch job 6101282
+
+mv slurm-6101282_* Logs/
+

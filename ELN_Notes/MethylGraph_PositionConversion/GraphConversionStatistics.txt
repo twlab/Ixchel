@@ -1,0 +1,37 @@
+
+### Look at cytosine level statistics
+## 1. move to the appropriate directory
+cd /scratch/hllab/Juan/methylGrapher
+mkdir GraphConversionStatistics
+cd GraphConversionStatistics
+
+## 2. log into interactive node with 32GB of RAM and 1 CPU
+srun --mem=64000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+## 3. cat all split files, extract 8th column (tab separated), sort entries, count unique entries, save to file
+cat /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*_converted.methylC | cut -f 8 | sort | uniq -c > GraphConversionStatistics.txt
+
+## 4. remove whitespaces from beginning of each line
+sed -i 's/^[ \t]*//' GraphConversionStatistics.txt
+
+## 5. remove whitespaces from end of each line
+sed -i 's/[ \t]*$//' GraphConversionStatistics.txt
+
+## 6. replace whitespaces with tabs
+sed -i 's/[ \t]/\t/g' GraphConversionStatistics.txt
+
+## 7. load python module
+eval $( spack load --sh python@3 )
+
+## 8. loop through all lines in file as single line commands, extract 2nd column, run python script, append output to file
+paste <(for line in $(cut -f 2 GraphConversionStatistics.txt);do echo $(python3 /scratch/hllab/Juan/General_Code/interpretConversionCode.py $line); done) <(cat GraphConversionStatistics.txt) | sed -E s/" "/"\t"/g > FlagsGraphConversionStatistics.txt
+
+## 9. This will loop through and pull 8th column of the file and sum it up to get total number of C's then it will divide each count by the total number of C's and multiply by 100 to get the percentage of each flag
+paste <(cat FlagsGraphConversionStatistics.txt) <(for line in $(cut -f 8 FlagsGraphConversionStatistics.txt);do echo $line/$(cut -f 8 FlagsGraphConversionStatistics.txt | awk '{sum+=$1} END {print sum}') | bc -l; done | awk '{printf "%.7f\n", $1*100}') > PercentagesGraphConversionStatistics.txt
+
+## 10. exit interactive node
+exit
+
+
+### Look at segment level statistics
+# Bookmark

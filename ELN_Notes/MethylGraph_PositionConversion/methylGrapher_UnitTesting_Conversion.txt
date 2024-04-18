@@ -1,0 +1,195 @@
+cd /scratch/hllab/Juan/methylGrapher
+
+mkdir UnitTesting
+
+cd UnitTesting/
+
+#pasted in manually made graph as: TestGraph.gfa
+
+gzip TestGraph.gfa
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+# Pull out all segments
+zcat TestGraph.gfa.gz | awk -F "\t" '{if($1=="S") print $0}' >Segments.TestGraph.gfa
+
+# Pull out reference segments only
+grep "GRCh38" Segments.TestGraph.gfa >RefOnly.Segments.TestGraph.gfa
+
+# Pull out query segments only
+grep -v "GRCh38" Segments.TestGraph.gfa >QueryOnly.Segments.TestGraph.gfa
+
+# Pull out all Links
+zcat TestGraph.gfa.gz | awk -F "\t" '{if($1=="L") print $0}' >Links.TestGraph.gfa
+
+# Generate search keys to pull Links in which reference segments are the source
+awk -F "\t" '{print "L\t"$2"\t"}' RefOnly.Segments.TestGraph.gfa | sort | uniq >LinkSearchKeys.txt
+
+# Pull all link entries with a reference segment as the source
+grep -f LinkSearchKeys.txt Links.TestGraph.gfa >RefOnlySourceLinks.TestGraph.gfa
+
+
+### Process pangenome needed for conversion
+
+cd /scratch/hllab/Juan/methylGrapher/UnitTesting
+
+# Automate prep with bash script
+sbatch /scratch/hllab/Juan/General_Code/run_makeRefSegmentHashPickle.sh RefOnly.Segments.TestGraph.gfa RefOnly.Segments.TestGraph.pkl
+
+Submitted batch job 7663018
+
+sbatch /scratch/hllab/Juan/General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.TestGraph.gfa RefOnlySourceLinks.TestGraph.pkl DoubleAnchored.TestGraph.pkl
+
+Submitted batch job 8585768
+
+sbatch /scratch/hllab/Juan/General_Code/run_makeQuerySegmentHashPickle.sh QueryOnly.Segments.TestGraph.gfa QueryOnly.Segments.TestGraph.pkl
+
+Submitted batch job 7663026
+
+sbatch /scratch/hllab/Juan/General_Code/run_makeLinkArrayPickles.sh RefOnly.Segments.TestGraph.pkl RefOnlySourceLinks.TestGraph.pkl TestGraph.UpstreamArray.pkl TestGraph.DownstreamArray.pkl
+
+Submitted batch job 8147300
+
+
+
+
+### Test conversion
+
+# pasted in R script made graph methhyl data as: DEMO.CG.graph.methyl
+# Rscript used the associatd gfa file to make this
+
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+ 
+eval $( spack load --sh python@3 )
+eval $( spack load --sh py-numpy/i7mcgz4 )
+eval $( spack load --sh py-jsonpickle@1.4.1 )
+eval $( spack load --sh py-dill@0.3.4 )
+ 
+# Test ref only setting
+python3 /scratch/hllab/Juan/General_Code/convertSegmentToRef.py DEMO.CG.graph.methyl RefOnly.Segments.TestGraph.pkl QueryOnly.Segments.TestGraph.pkl RefOnlySourceLinks.TestGraph.pkl REFONLY.OUTPUT.txt True TestGraph.UpstreamArray.pkl TestGraph.DownstreamArray.pkl
+
+
+# Test non-ref only
+python3 /scratch/hllab/Juan/General_Code/convertSegmentToRef.py DEMO.CG.graph.methyl RefOnly.Segments.TestGraph.pkl QueryOnly.Segments.TestGraph.pkl RefOnlySourceLinks.TestGraph.pkl ALL.OUTPUT.txt False TestGraph.UpstreamArray.pkl TestGraph.DownstreamArray.pkl
+
+
+
+
+
+
+
+
+
+# Build real graph query segments pickle
+
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+
+### The others were generated previously with the code notes for Wenjin
+sbatch /scratch/hllab/Juan/General_Code/run_makeQuerySegmentHashPickle.sh QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
+
+Submitted batch job 7663495
+
+# build link array pickles
+
+sbatch /scratch/hllab/Juan/General_Code/run_makeLinkArrayPickles.sh RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl
+
+Submitted batch job 8417744
+
+
+grep "31611814" RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa 
+
+grep "31611815" RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa 
+
+grep "31611816" RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa 
+
+
+grep "31611814" RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+grep "31611815" RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+grep "31611816" RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+grep "31611830" RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa 
+
+grep "31611830" RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+
+
+### Run on real data
+cd /scratch/hllab/Juan/methylGrapher/TESTING
+
+# With ref only param on
+sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh CG.graph.methyl ../GraphFiles/RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl ../GraphFiles/QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl ../GraphFiles/RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl RefOnly.CG.graph.methylC True ../GraphFiles/GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl ../GraphFiles/GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl
+
+Submitted batch job 8148741
+
+sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh CG.graph.methyl ../GraphFiles/RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl ../GraphFiles/QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl ../GraphFiles/RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl All.CG.graph.methylC False ../GraphFiles/GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl ../GraphFiles/GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl
+
+Submitted batch job 8148753
+
+# It ran for nearly 3 days and then gave this error:
+"Traceback (most recent call last):
+  File "/scratch/hllab/Juan/General_Code/convertSegmentToRef.py", line 259, in <module>
+    OUTPUT = np.vstack([np.vstack([pullAllCoords(ROW) for ROW in contents])])
+  File "/scratch/hllab/Juan/General_Code/convertSegmentToRef.py", line 259, in <listcomp>
+    OUTPUT = np.vstack([np.vstack([pullAllCoords(ROW) for ROW in contents])])
+  File "/scratch/hllab/Juan/General_Code/convertSegmentToRef.py", line 127, in pullAllCoords
+    SyntenicReferenceSegmentID = downstreamkeyarray[upstreamkeyarray.index(ANCHORSEGMENTID)]
+ValueError: '72324839' is not in list"
+
+
+
+### Try a subset
+
+#Small subset first
+shuf -n 10000 CG.graph.methyl >Subset_CG.graph.methyl
+
+
+
+shuf -n 768638 CG.graph.methyl >Subset_CG.graph.methyl
+
+sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh Subset_CG.graph.methyl ../GraphFiles/RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl ../GraphFiles/QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl ../GraphFiles/RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl Subset_All.CG.graph.methylC False ../GraphFiles/GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl ../GraphFiles/GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl ../GraphFiles/DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl
+
+Submitted batch job 8563353
+
+
+
+
+grep "81415957" ../GraphFiles/RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa 
+
+grep "81415957" ../GraphFiles/QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+grep "81415957" ../GraphFiles/RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+grep "81415957" ../GraphFiles/Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+
+
+
+#### I think the link array building is maybe broken
+
+
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+grep "True" RefOnly.CG.graph.methylC | wc -l
+
+53,602,913
+
+grep -v "True" RefOnly.CG.graph.methylC | wc -l
+
+1,739,025
+
+3.14%
+
+
+
+
+
+
+
+
+
+
+

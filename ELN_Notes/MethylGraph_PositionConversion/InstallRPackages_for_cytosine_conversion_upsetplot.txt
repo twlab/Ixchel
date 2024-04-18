@@ -1,0 +1,168 @@
+
+
+
+
+export R_LIBS_SITE=/ref/hllab/software/r-envs/General/4.1.1
+
+mkdir -p $R_LIBS_SITE
+
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+eval $( spack load --sh libxml2 )
+eval $( spack load --sh r@4.1.1/pqjecex )
+eval $( spack load --sh libpng@1.6.37 )
+#eval $( spack load --sh r-cairo@1.5-12.2 )
+eval $( spack load --sh libx11@1.7.0 )
+
+
+
+
+R
+
+.libPaths()
+
+install.packages("png",dependencies=TRUE,lib=.libPaths()[2])
+
+
+### I got stuck here
+install.packages("vdiffr",dependencies=TRUE,lib=.libPaths()[2])
+
+install.packages("ComplexUpset",dependencies=TRUE,lib=.libPaths()[2])
+
+
+
+
+
+
+
+
+
+
+
+#### Wang lab repo
+
+# Create R Library
+export R_LIBS_SITE=/ref/twlab/software/r-envs/juanfmacias_renv/4.1.1
+
+mkdir -p $R_LIBS_SITE
+
+# Set optional variables
+export LIBRARY_PATH=$_LIBRARY_PATH
+export C_INCLUDE_PATH=$_C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$_CPLUS_INCLUDE_PATH 
+
+
+# Open R
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+eval $( spack load --sh libxml2 )
+eval $( spack load --sh r@4.1.1/pqjecex )
+
+
+R
+
+.libPaths()
+
+[1] "/ref/twlab/software/r-envs/juanfmacias_renv/4.1.1"                                                                        
+[2] "/ref/twlab/software/spack/opt/spack/linux-rocky8-x86_64/gcc-8.5.0/r-4.1.1-5lw35mzpdlsbypdnyjrvnusmyhgnok2o/rlib/R/library"
+
+
+ERROR: dependency ‘systemfonts’ is not available for package ‘textshaping’
+* removing ‘/ref/twlab/software/r-envs/juanfmacias_renv/4.1.1/textshaping’
+ERROR: dependency ‘units’ is not available for package ‘sf’
+* removing ‘/ref/twlab/software/r-envs/juanfmacias_renv/4.1.1/sf’
+ERROR: dependency ‘systemfonts’ is not available for package ‘svglite’
+* removing ‘/ref/twlab/software/r-envs/juanfmacias_renv/4.1.1/svglite’
+ERROR: dependencies ‘systemfonts’, ‘textshaping’ are not available for package ‘ragg’
+
+
+install.packages("systemfonts",dependencies=TRUE,lib=.libPaths()[1])
+
+
+
+
+install.packages("udunits2",dependencies=TRUE,lib=.libPaths()[1])
+
+install.packages("units",dependencies=TRUE,lib=.libPaths()[1])
+
+
+
+
+
+
+
+
+install.packages("systemfonts",dependencies=TRUE,lib=.libPaths()[1])
+
+
+
+# Install xml2
+install.packages("xml2",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install ggplot2
+install.packages("ggplot2",dependencies=TRUE,lib=.libPaths()[1])
+
+
+
+# Install tidyr
+install.packages("tidyr",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install dplyr
+install.packages("dplyr",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install cowplot
+install.packages("cowplot",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install data.table
+install.packages("data.table",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install Rcpp
+install.packages("Rcpp",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install jsonlite
+install.packages("jsonlite",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install BiocManager
+install.packages("BiocManager",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install MASS
+install.packages("MASS",dependencies=TRUE,lib=.libPaths()[1])
+
+# Install devtools
+install.packages("devtools")
+
+# Install tidyverse
+install.packages("tidyverse")
+
+
+
+# Install DESeq2
+BiocManager::install("DESeq2")
+
+# Install edgeR
+BiocManager::install("edgeR")
+
+# Install glmnet
+BiocManager::install("glmnet")
+
+
+
+
+# Install DSS
+library("BiocManager")
+BiocManager::install("DSS")
+
+# Install DSS (latest version: 2.47.1)
+install_github("haowulab/DSS")
+
+
+
+
+library(scales)
+library(stringr)
+library("ComplexUpset")
+
+
+
+
+

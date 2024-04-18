@@ -1,0 +1,332 @@
+
+##### The purpose of this entry is to convert .graph.methyl files from RIS to methylC format.
+# These samples are benchmarking samples which we have processed in via the traditional means, but which we want to process in via methylGrapher to compare the results.
+# The steps are as follows:
+# 1. Copy the data from RIS to HTCF
+# 2. Subset out CG context
+# 3. sort the CG.graph.methyl files
+# 4. Split .graph.methyl (input) file based on keys (precomputed lookup derived offset-segment keys)
+# 5. Convert each split .graph.methyl file to methylC format using the conversion script
+# 6. Combine the converted methylC files into a single file for each sample
+# 7. Copy results back to RIS
+
+
+### 1. Copy the data from RIS to HTCF
+# RIS location
+cd /storage1/fs1/hprc/Active/wenjin/
+
+rsync -aHv --include='HG0**/*graph2.methyl' --include='*/' --exclude='*' bsb_mp_removed_pan/ juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan
+
+sent 325,559,732,622 bytes  received 392 bytes  208,759,046.50 bytes/sec
+total size is 325,480,268,341  speedup is 1.00
+
+
+
+### 2. Subset out CG context. Also make then name of the output .graph.methyl instead of .graph2.methyl
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+grep "CG" ./HG00741/BRep2/graph2.methyl >./HG00741/BRep2/CG.graph.methyl
+grep "CG" ./HG00741/BRep1/graph2.methyl >./HG00741/BRep1/CG.graph.methyl
+
+grep "CG" ./HG03516/BRep2/graph2.methyl >./HG03516/BRep2/CG.graph.methyl
+grep "CG" ./HG03516/BRep1/graph2.methyl >./HG03516/BRep1/CG.graph.methyl
+
+grep "CG" ./HG01978/BRep2/graph2.methyl >./HG01978/BRep2/CG.graph.methyl
+grep "CG" ./HG01978/BRep1/graph2.methyl >./HG01978/BRep1/CG.graph.methyl
+
+grep "CG" ./HG00621/BRep2/graph2.methyl >./HG00621/BRep2/CG.graph.methyl
+grep "CG" ./HG00621/BRep1/graph2.methyl >./HG00621/BRep1/CG.graph.methyl
+
+grep "CG" ./HG01952/BRep2/graph2.methyl >./HG01952/BRep2/CG.graph.methyl
+grep "CG" ./HG01952/BRep1/graph2.methyl >./HG01952/BRep1/CG.graph.methyl
+
+exit
+
+
+### 3. sort the CG.graph.methyl files by the first two columns and save the output to a new file with the .sorted extension
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+sort -k1,1 -k2,2n ./HG00741/BRep2/CG.graph.methyl >./HG00741/BRep2/CG.graph.methyl.sorted
+sort -k1,1 -k2,2n ./HG00741/BRep1/CG.graph.methyl >./HG00741/BRep1/CG.graph.methyl.sorted
+
+sort -k1,1 -k2,2n ./HG03516/BRep2/CG.graph.methyl >./HG03516/BRep2/CG.graph.methyl.sorted
+sort -k1,1 -k2,2n ./HG03516/BRep1/CG.graph.methyl >./HG03516/BRep1/CG.graph.methyl.sorted
+
+sort -k1,1 -k2,2n ./HG01978/BRep2/CG.graph.methyl >./HG01978/BRep2/CG.graph.methyl.sorted
+sort -k1,1 -k2,2n ./HG01978/BRep1/CG.graph.methyl >./HG01978/BRep1/CG.graph.methyl.sorted
+
+sort -k1,1 -k2,2n ./HG00621/BRep2/CG.graph.methyl >./HG00621/BRep2/CG.graph.methyl.sorted
+sort -k1,1 -k2,2n ./HG00621/BRep1/CG.graph.methyl >./HG00621/BRep1/CG.graph.methyl.sorted
+
+sort -k1,1 -k2,2n ./HG01952/BRep2/CG.graph.methyl >./HG01952/BRep2/CG.graph.methyl.sorted
+sort -k1,1 -k2,2n ./HG01952/BRep1/CG.graph.methyl >./HG01952/BRep1/CG.graph.methyl.sorted
+
+exit
+
+
+
+### 4. Split .graph.methyl (input) file based on keys (precomputed lookup derived offset-segment keys) using the run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh script
+## this section will generate a file with the parameters for the run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh script
+# The first column is the .graph.methyl file to be split
+# The second column each key file to split the .graph.methyl file by
+# The third column is the name of the output split .graph.methyl files in the SplitInputFiles/ directory
+# Use the find and paste commands to generate this file
+# It will need to create a SplitInputFiles/ directory for each sample within it's directory
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan
+
+# make the SplitInputFiles/ directory for each sample by BRep directory
+find HG0* -type d -name "BRep*" | awk -F "/" '{print $1"/"$2"/"$3"SplitInputFiles"}' | xargs mkdir -p
+
+# generate a file with the parameters for the run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh script for each sample by BRep directory
+# The conversion key files are in the /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ directory
+
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00741/BRep2/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00741/BRep2/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG00741_BRep2.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00741/BRep1/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00741/BRep1/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG00741_BRep1.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG03516/BRep2/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG03516/BRep2/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG03516_BRep2.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG03516/BRep1/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG03516/BRep1/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG03516_BRep1.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01978/BRep2/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01978/BRep2/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG01978_BRep2.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01978/BRep1/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01978/BRep1/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG01978_BRep1.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00621/BRep2/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00621/BRep2/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG00621_BRep2.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00621/BRep1/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG00621/BRep1/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG00621_BRep1.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01952/BRep2/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01952/BRep2/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG01952_BRep2.txt
+paste <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01952/BRep1/CG.graph.methyl.sorted"}') <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "HG01952/BRep1/SplitInputFiles/"$9"__CG.graph.methyl.sorted"}') >SplitParameters_HG01952_BRep1.txt
+
+# combine all of the SplitParameters files into a single file
+cat SplitParameters_HG00741_BRep2.txt SplitParameters_HG00741_BRep1.txt SplitParameters_HG03516_BRep2.txt SplitParameters_HG03516_BRep1.txt SplitParameters_HG01978_BRep2.txt SplitParameters_HG01978_BRep1.txt SplitParameters_HG00621_BRep2.txt SplitParameters_HG00621_BRep1.txt SplitParameters_HG01952_BRep2.txt SplitParameters_HG01952_BRep1.txt >SplitParameters_All.txt
+
+# remove the SplitParameters files
+rm SplitParameters_HG00741_BRep2.txt SplitParameters_HG00741_BRep1.txt SplitParameters_HG03516_BRep2.txt SplitParameters_HG03516_BRep1.txt SplitParameters_HG01978_BRep2.txt SplitParameters_HG01978_BRep1.txt SplitParameters_HG00621_BRep2.txt SplitParameters_HG00621_BRep1.txt SplitParameters_HG01952_BRep2.txt SplitParameters_HG01952_BRep1.txt
+
+wc -l SplitParameters_All.txt
+
+8580
+
+# submit the jobs to the cluster
+sbatch --array=1-8580%200 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh SplitParameters_All.txt
+
+Submitted batch job 9787453
+
+### Bookmark
+
+# check how many jobs completed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9787453 | grep ".batch" | grep "COMPLETED" | wc -l
+
+8580
+
+# Check logs to make sure they are all uniformly the same length.
+wc -l slurm-9787453*.out | head -n -1 | awk -F " " '{print $1}' | sort | uniq -c
+
+8578 11
+      1 12
+      1 13
+
+wc -l slurm-9787453*.out | grep "12 "
+
+cat slurm-9787453_19.out
+
+wc -l slurm-9787453*.out | grep "13 "
+
+cat slurm-9787453_3846.out
+
+# I don't know why these two jobs are different lengths. I'm going to re-run them.
+
+sbatch --array=3846,19%1 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh SplitParameters_All.txt
+
+Submitted batch job 9796100
+
+# This time it completed successfully. It makes me wonder if 200 jobs is too many for the cluster to handle at once. In terms of the writing.
+
+
+
+# Clean up logs
+mkdir Logs
+mkdir Logs/SplitFiles_by_PreSplitKeys_MGConversion
+mv slurm-* Logs/SplitFiles_by_PreSplitKeys_MGConversion/
+
+# How many .temp files are there?
+find . -type f -name "*.tmp*" | wc -l
+
+0
+
+
+
+
+
+### 5. Convert each CG.graph.methyl file to methylC format using the conversion script
+cd /scratch/hllab/Juan/methylGrapher/bsb_mp_removed_pan
+
+# make the SplitOutputFiles/ directory for each sample by BRep directory
+find HG0* -type d -name "BRep*" | awk -F "/" '{print $1"/"$2"/"$3"SplitOutputFiles"}' | xargs mkdir -p
+
+# Create a file with the conversion parameters
+paste <(find HG00621/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG00621/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG00621/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG00621_BRep1.txt
+paste <(find HG00621/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG00621/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG00621/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG00621_BRep2.txt
+
+paste <(find HG00741/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG00741/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG00741/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG00741_BRep1.txt
+paste <(find HG00741/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG00741/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG00741/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG00741_BRep2.txt
+
+paste <(find HG01952/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG01952/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG01952/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG01952_BRep1.txt
+paste <(find HG01952/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG01952/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG01952/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG01952_BRep2.txt
+
+paste <(find HG01978/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG01978/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG01978/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG01978_BRep1.txt
+paste <(find HG01978/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG01978/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG01978/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG01978_BRep2.txt
+
+paste <(find HG03516/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG03516/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG03516/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG03516_BRep1.txt
+paste <(find HG03516/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG03516/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG03516/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG03516_BRep2.txt
+
+
+
+# combine all of the ConversionParameters files into a single file
+cat ConversionParameters_HG00621_BRep1.txt ConversionParameters_HG00621_BRep2.txt ConversionParameters_HG00741_BRep1.txt ConversionParameters_HG00741_BRep2.txt ConversionParameters_HG01952_BRep1.txt ConversionParameters_HG01952_BRep2.txt ConversionParameters_HG01978_BRep1.txt ConversionParameters_HG01978_BRep2.txt ConversionParameters_HG03516_BRep1.txt ConversionParameters_HG03516_BRep2.txt >ConversionParameters_All.txt
+
+# remove the ConversionParameters files
+rm ConversionParameters_HG00621_BRep1.txt ConversionParameters_HG00621_BRep2.txt ConversionParameters_HG00741_BRep1.txt ConversionParameters_HG00741_BRep2.txt ConversionParameters_HG01952_BRep1.txt ConversionParameters_HG01952_BRep2.txt ConversionParameters_HG01978_BRep1.txt ConversionParameters_HG01978_BRep2.txt ConversionParameters_HG03516_BRep1.txt ConversionParameters_HG03516_BRep2.txt
+
+# How many jobs will there be?
+wc -l ConversionParameters_All.txt
+
+8580
+
+# submit the jobs to the cluster
+sbatch --array=1-8580%50 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh ConversionParameters_All.txt
+
+Submitted batch job 9796103
+
+
+
+# check how many jobs completed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9796103 | grep ".batch" | grep "COMPLETED" | wc -l
+
+8580
+
+# Check logs to make sure they are all uniformly the same length.
+wc -l slurm-9796103*.out | head -n -1 | awk -F " " '{print $1}' | sort | uniq -c
+
+   1716 11
+   6864 9
+
+wc -l slurm-9796103*.out | grep "11 " | head
+
+cat slurm-9796103_8580.out
+
+# Clean up logs
+mkdir Logs/convertGraphMethyl_To_MethylC
+mv slurm-* Logs/convertGraphMethyl_To_MethylC/
+
+# It appears there was an error in what column it was pulling the keysID from in the awk command when building the conversion parameters file. Only for HG03516 samples. I'm going to re-run them.
+
+# remake just the parameters to re-run
+paste <(find HG03516/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG03516/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG03516/BRep1/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG03516_BRep1.txt
+paste <(find HG03516/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted") <(find HG03516/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | awk -F "_" '{print "/scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$5"_converted.pkl"}') <(find HG03516/BRep2/SplitInputFiles/ -type f -name "*CG.graph.methyl.sorted" | sed s/"graph.methyl.sorted"/"methylC"/ | awk -F "/" '{print $1"/"$2"/SplitOutputFiles/"$4}') >ConversionParameters_HG03516_BRep2.txt
+
+# combine them
+cat ConversionParameters_HG03516_BRep1.txt ConversionParameters_HG03516_BRep2.txt >ConversionParameters_HG03516.txt
+
+# remove pieces
+rm ConversionParameters_HG03516_BRep1.txt ConversionParameters_HG03516_BRep2.txt
+
+# How many jobs will there be?
+wc -l ConversionParameters_HG03516.txt
+
+1716
+
+# submit the jobs to the cluster
+sbatch --array=1-1716%50 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh ConversionParameters_HG03516.txt
+
+Submitted batch job 9806253
+
+
+
+# check how many jobs completed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9806253 | grep ".batch" | grep "COMPLETED" | wc -l
+
+1716
+
+# Check logs to make sure they are all uniformly the same length.
+wc -l slurm-9806253*.out | head -n -1 | awk -F " " '{print $1}' | sort | uniq -c
+
+   1716 9
+
+cat slurm-9806253_1.out
+
+# This time it seems to have worked. Or at east thrown no errors.
+
+# Clean up logs
+mv slurm-* Logs/convertGraphMethyl_To_MethylC/
+
+### 6. Combine all of the methylC files into a single file for each sample by BRep directory
+cat HG00621/BRep1/SplitOutputFiles/*.methylC >HG00621/BRep1/CG.graph.Precomputed.methylC
+cat HG00621/BRep2/SplitOutputFiles/*.methylC >HG00621/BRep2/CG.graph.Precomputed.methylC
+cat HG00741/BRep1/SplitOutputFiles/*.methylC >HG00741/BRep1/CG.graph.Precomputed.methylC
+cat HG00741/BRep2/SplitOutputFiles/*.methylC >HG00741/BRep2/CG.graph.Precomputed.methylC
+cat HG01952/BRep1/SplitOutputFiles/*.methylC >HG01952/BRep1/CG.graph.Precomputed.methylC
+cat HG01952/BRep2/SplitOutputFiles/*.methylC >HG01952/BRep2/CG.graph.Precomputed.methylC
+cat HG01978/BRep1/SplitOutputFiles/*.methylC >HG01978/BRep1/CG.graph.Precomputed.methylC
+cat HG01978/BRep2/SplitOutputFiles/*.methylC >HG01978/BRep2/CG.graph.Precomputed.methylC
+cat HG03516/BRep1/SplitOutputFiles/*.methylC >HG03516/BRep1/CG.graph.Precomputed.methylC
+cat HG03516/BRep2/SplitOutputFiles/*.methylC >HG03516/BRep2/CG.graph.Precomputed.methylC
+
+# Remove the SplitOutputFiles/ directory for each sample by BRep directory
+find HG0* -type d -name "SplitOutputFiles" | xargs rm -r
+
+# Tar and compress the SplitInputFiles/ directory for each sample by BRep directory use CompressDirectory.sh script on each directory
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00621/BRep1/SplitInputFiles/ HG00621/BRep1/
+
+Submitted batch job 9808602
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00621/BRep2/SplitInputFiles/ HG00621/BRep2/
+
+Submitted batch job 9808795
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00741/BRep1/SplitInputFiles/ HG00741/BRep1/
+
+Submitted batch job 9808796
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00741/BRep2/SplitInputFiles/ HG00741/BRep2/
+
+Submitted batch job 9808797
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01952/BRep1/SplitInputFiles/ HG01952/BRep1/
+
+Submitted batch job 9808798
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01952/BRep2/SplitInputFiles/ HG01952/BRep2/
+
+Submitted batch job 9808805
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01978/BRep1/SplitInputFiles/ HG01978/BRep1/
+
+Submitted batch job 9808806
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01978/BRep2/SplitInputFiles/ HG01978/BRep2/
+
+Submitted batch job 9808807
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG03516/BRep1/SplitInputFiles/ HG03516/BRep1/
+
+Submitted batch job 9808810
+
+sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG03516/BRep2/SplitInputFiles/ HG03516/BRep2/
+
+Submitted batch job 9808812
+
+# Clean up logs
+mkdir Logs/CompressSplitInputDirectory
+mv slurm-* Logs/CompressSplitInputDirectory/
+
+# remove the SplitInputFiles/ directory for each sample by BRep directory
+find HG0* -type d -name "SplitInputFiles" | xargs rm -r
+
+# they still are missing entries corresponding to the segment absent from my version of pangenome
+# I'm ignoring this for now. I'll deal with it later.
+
+### 7. Copy results back to RIS
+cd /scratch/hllab/Juan/methylGrapher/
+chmod -R 755 bsb_mp_removed_pan/
+
+# I just asked chad to do this for me. I'll update this section when it's done.
+He put them here:
+/storage1/fs1/hprc/Active/shared/methylGrapher/bsb_mp_removed_pan/
+

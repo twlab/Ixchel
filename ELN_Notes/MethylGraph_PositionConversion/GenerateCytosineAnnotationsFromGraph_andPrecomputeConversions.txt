@@ -1,0 +1,257 @@
+
+
+##### Test on manually generated graph
+cd /scratch/hllab/Juan/methylGrapher/UnitTesting/
+
+### Generate annotations
+# Manual Generate annotations
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+ 
+eval $( spack load --sh python@3 )
+eval $( spack load --sh py-numpy/i7mcgz4 )
+eval $( spack load --sh py-jsonpickle@1.4.1 )
+eval $( spack load --sh py-dill@0.3.4 )
+
+python3 /scratch/hllab/Juan/General_Code/extractCytosineAnnotationsFromGraphSegments.py Segments.TestGraph.gfa CG.Annotations.TestGraph.txt
+exit
+
+# Automated Generate annotations
+sbatch /scratch/hllab/Juan/General_Code/run_extractCytosineAnnotationsFromGraphSegments.sh Segments.TestGraph.gfa CG.Annotations.TestGraph.txt 
+Submitted batch job 9701788
+
+
+
+### Convert annotations to methylC
+sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh CG.Annotations.TestGraph.txt RefOnly.Segments.TestGraph.pkl QueryOnly.Segments.TestGraph.pkl RefOnlySourceLinks.TestGraph.pkl CG.Annotations.methylC False TestGraph.UpstreamArray.pkl TestGraph.DownstreamArray.pkl DoubleAnchored.TestGraph.pkl
+
+Submitted batch job 9702497
+# It seems to work!
+
+### Splitting and Converting cytosine positions
+# Test splitting on fake graph annotations
+cd /scratch/hllab/Juan/methylGrapher/UnitTesting/
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+# This will split the input file into files of -l length using the
+split CG.Annotations.TestGraph.txt Split.CG.Annotations.TestGraph_ -l 5
+
+
+
+
+
+
+##### Generate all annotations from real graph, convert them, and prepare for them to be used as lookups for the real .graph.methyl files
+### Run extract annotations on real graph
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+sbatch /scratch/hllab/Juan/General_Code/run_extractCytosineAnnotationsFromGraphSegments.sh Segments.GRCh38-f1g-90-mc-aug11.gfa C.Annotations.GRCh38-f1g-90-mc-aug11.txt
+
+Submitted batch job 9702503
+
+# Cleanup
+mkdir Logs/GenerateBaseAnnotations
+mv slurm-9702503.out Logs/GenerateBaseAnnotations/
+
+
+
+### Getting initial stats on annotations
+# How many Cytosine annotations need to be converted?
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles/
+
+# Full genome
+wc -l C.Annotations.GRCh38-f1g-90-mc-aug11.txt
+
+642,209,911 C.Annotations.GRCh38-f1g-90-mc-aug11.txt
+
+# Real sample only CpGs
+wc -l ../TESTING/CG.graph.methyl
+
+55,341,938 ../TESTING/CG.graph.methyl
+
+# How fast?
+~768,638 conversions per hour
+
+exit
+
+
+
+### Splitting positions
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+
+# Make params file to split annotations
+paste <(echo "C.Annotations.GRCh38-f1g-90-mc-aug11.txt") <(echo "Split.C.Annotations.GRCh38-f1g-90-mc-aug11_") <(echo "1500000") >C.Annotation.Split.Params.txt
+
+# Split annotations
+sbatch /scratch/hllab/Juan/General_Code/run_Batch_Split_Files.sh C.Annotation.Split.Params.txt
+Submitted batch job 9712633
+
+# Cleanup
+mkdir Logs/SplitAnnotations/
+mv slurm-9712633.out Logs/SplitAnnotations/
+
+mkdir SplitAnnotations
+mv Split.C.Annotations.GRCh38-f1g-90-mc-aug11_* SplitAnnotations/
+
+
+
+### Converting split cytosine positions
+# Make params file
+paste <(find SplitAnnotations/ -type f) <(find SplitAnnotations/ -type f | awk -F "_" '{print "RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print $0"_converted.methylC"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "False"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl"}') >ConvertSplitFiles_Params.txt
+
+# how many jobs?
+wc -l ConvertSplitFiles_Params.txt
+858 ConvertSplitFiles_Params.txt
+
+# run conversion of split files
+sbatch --array=1-858%20 /scratch/hllab/Juan/General_Code/run_Batch_convertSegmentToRef.sh ConvertSplitFiles_Params.txt
+
+Submitted batch job 9712636
+
+# How many jobs completed?
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9712636 | grep ".batch" | grep "COMPLETED" | wc -l
+858
+
+# Max memory usage of any jobs
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9712636 | grep ".batch" | awk -F "|" '{print $3*0.000000001}' | sort -n | tail -n 1
+76.6477
+
+# Cleanup
+mkdir Logs/ConvertSplitFiles/
+mv slurm-9712636_* Logs/ConvertSplitFiles/
+
+
+
+### Build precomputed positions lookup dictionary and pickle it
+# This approach will not combine the split .methylC files into a single file.
+# It will build a lookup dictionary for each split file and pickle it.
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+
+# Make params file
+paste <(find SplitAnnotations/ -type f -name "*_converted.methylC") <(find SplitAnnotations/ -type f -name "*_converted.methylC" | awk -F ".methylC" '{print $1".pkl"}') >PicklePrecomputedPositionsHash_Params.txt
+
+# how many jobs?
+wc -l PicklePrecomputedPositionsHash_Params.txt
+
+858 PicklePrecomputedPositionsHash_Params.txt
+
+# run dict building and pickling of split files
+sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_PicklePrecomputedPositionsHash.sh PicklePrecomputedPositionsHash_Params.txt
+
+Submitted batch job 9747862
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9747862 | grep ".batch" | grep "COMPLETED" | wc -l
+
+858
+
+# Cleanup
+mkdir Logs/PicklePrecomputedPositionsHash/
+mv slurm-9747862_* Logs/PicklePrecomputedPositionsHash/
+
+
+
+### Generate segment and offset keys for each split file
+# These sorted keys files will be used in combination with the grep -F command to split real .graph.methyl files into smaller files
+# such that for each chunk of the real .graph.methyl file, we know which corresponding .pkl file to use to convert the cytosine positions
+
+# Make params file for generating sorted segment and offset keys for each split file
+paste <(find SplitAnnotations/ -type f -name "*.methylC") <(find SplitAnnotations/ -type f -name "*.methylC" | awk -F ".methylC" '{print $1".methylC_sorted_Keys.txt"}') >Generate_Converted_SegmentAndOffsetKeys_Params.txt
+
+# run sbatch script to generate sorted segment and offset keys for each split file
+sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_Generate_Converted_SegmentAndOffsetKeys.sh Generate_Converted_SegmentAndOffsetKeys_Params.txt
+
+Submitted batch job 9748755
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9748755 | grep ".batch" | grep "COMPLETED" | wc -l
+
+# this will check what the max memory usage was
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9748755 | grep ".batch" | awk -F "|" '{print $3*0.000000001}' | sort -n | tail -n 1
+
+# Cleanup
+mkdir Logs/Generate_Converted_SegmentAndOffsetKeys/
+mv slurm-9748755_* Logs/Generate_Converted_SegmentAndOffsetKeys/
+
+mkdir SplitAnnotations/Converted_SegmentAndOffsetKeys
+mv SplitAnnotations/*_converted.methylC_sorted_Keys.txt SplitAnnotations/Converted_SegmentAndOffsetKeys/
+
+mkdir SplitAnnotations/Converted_PositionsPickleFiles
+mv SplitAnnotations/*_converted.pkl SplitAnnotations/Converted_PositionsPickleFiles/
+
+mkdir SplitAnnotations/IntermediateFiles
+mv SplitAnnotations/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_* SplitAnnotations/IntermediateFiles/
+
+## Rename split keys files to make them easier for my bash scripts to work with
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/
+
+# generate params file to rename split keys files
+# The first column is the old file name
+# second column is the new file name generated by moving "_converted.methylC_sorted_Keys" from the end to the front of the file name. Then removing the ".txt" extension
+
+paste <(find Converted_SegmentAndOffsetKeys/ -type f -name "*_converted.methylC_sorted_Keys.txt") <(find Converted_SegmentAndOffsetKeys/ -type f -name "*_converted.methylC_sorted_Keys.txt" | awk -F "/|_converted.methylC_sorted_Keys.txt" '{print $1"/converted.methylC_sorted_Keys_"$2}') >Rename_Converted_SegmentAndOffsetKeys_Params.txt
+
+# run sbatch script to rename split keys files
+sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_Move_Specific.sh Rename_Converted_SegmentAndOffsetKeys_Params.txt
+
+Submitted batch job 9750092
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9750092 | grep ".batch" | grep "COMPLETED" | wc -l
+
+858
+
+# Cleanup
+mkdir ../Logs/Rename_Converted_SegmentAndOffsetKeys/
+mv slurm-9750092_* ../Logs/Rename_Converted_SegmentAndOffsetKeys/
+
+
+
+Converted_SegmentAndOffsetKeys/
+
+### The essential files for converting real .graph.methyl files from precomputed positions are:
+# 1. The split .pkl files
+# 2. The sorted segment and offset keys files
+
+
+
+
+
+##### GARBO
+
+# Log into interactive node with 100GB of memory and 1 CPU core
+srun --mem=100000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+### This approach was meant to build a single huge lookup dictionary for all the cytosines in the genome. It ran out of memory.
+# Cat split converted files
+cat SplitAnnotations/*_converted.methylC >Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC
+
+# Build and Pickle precomputed positions hash
+sbatch /scratch/hllab/Juan/General_Code/run_PicklePrecomputedPositionsHash.sh Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.pkl
+
+Submitted batch job 9746455
+
+# It ran out of memory 700GB. I need to split the file into smaller chunks... which complicates the lift over process
+
+
+
+### This approach will combine the split files into a single file and then split them by the chromosome. It will then build a lookup dictionary for each chromosome and pickle it.
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+
+# Cat split converted files
+cat SplitAnnotations/*_converted.methylC >Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC
+
+# Split by chromosome
+mkdir SplitAnnotationsByChromosome
+cd SplitAnnotationsByChromosome
+
+# This section will find all uniques chromosomes in the first column of the file and then split the file by chromosome
+srun --mem=100000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+awk -F "\t" '{print $1}' ../Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC | sort | uniq | while read line; do grep -P "^$line\t" ../Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC >$line.methylC; done
+
+
+# This section will loop through each chromosome file and pass it into the PicklePrecomputedPositionsHash script
+# Don't forget to set it to the right amount of memory!
+for i in $(ls *.methylC); do sbatch /scratch/hllab/Juan/General_Code/run_PicklePrecomputedPositionsHash.sh $i $i.pkl; done
+
+##### GARBO

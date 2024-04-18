@@ -1,0 +1,16 @@
+
+
+
+cd  /storage1/fs1/hprc/Active/shared/HPRC_Annotation_PhaseI/JuanWorking/
+
+rsync -aHv juanfmacias@login.htcf.wustl.edu:/scratch/hllab/Juan/methylGrapher/ methylGrapher
+
+sent 363,254 bytes  received 399,649,166,530 bytes  186,795,760.59 bytes/sec
+total size is 1,185,950,668,128  speedup is 2.97
+
+
+cd /scratch/hllab/Juan/
+
+rm -r methylGrapher/
+
+

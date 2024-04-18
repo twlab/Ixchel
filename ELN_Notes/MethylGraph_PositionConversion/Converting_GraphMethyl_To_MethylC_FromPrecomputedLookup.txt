@@ -1,0 +1,529 @@
+
+
+##### This whole entry will test and run the conversion of a .graph.methyl file to a .methylC file using precomputed dictionaries and segment-offset keys files
+
+# I need to modify the code to deal with the conversioncode being included now
+# I think this has been implemented in the code now
+##### Fake data
+cd /scratch/hllab/Juan/methylGrapher/GraphFiles
+mkdir TESTING
+
+### Generate test set lookups
+awk -F "\t" '{if ($1!="NA") print $0}' SplitAnnotations/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*_converted.methylC | head -n 1000 >TESTING/TESTINGPICKLING_aaaaa_converted.methylC
+awk -F "\t" '{if ($1!="NA") print $0}' SplitAnnotations/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*_converted.methylC | head -n 2000 | tail -n 1000 >TESTING/TESTINGPICKLING_aaaab_converted.methylC
+awk -F "\t" '{if ($1!="NA") print $0}' SplitAnnotations/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*_converted.methylC | head -n 3000 | tail -n 1000 >TESTING/TESTINGPICKLING_aaaac_converted.methylC
+
+# Generate parameters file with the files to pickle in TESTING/ as the first column
+# The second column is the name of the pickle file to be generated.
+# Use the find and paste commands to generate this file
+paste <(find TESTING/ -name "*_converted.methylC") <(find TESTING/ -name "*_converted.methylC" | sed s/".methylC"/".pkl"/g ) >TESTINGPICKLING.parameters
+
+# Build dictionaries from precomputed graph positions files and pickle them
+sbatch --array=1-$( cat TESTINGPICKLING.parameters | wc -l ) /scratch/hllab/Juan/General_Code/run_Batch_PicklePrecomputedPositionsHash.sh TESTINGPICKLING.parameters
+
+Submitted batch job 9748722
+
+# Clean up
+mkdir TESTING/Logs
+mv slurm-* TESTING/Logs/
+
+
+
+### Build .graph.methyl file. This is file corresponds to the real data to be converted
+awk -F "\t" '{print $9"\t"$10"\t"$6"\t"$4"\t"$5*(1-$7)"\t"$5*$7"\t"$7"\t"$7}' TESTING/TESTINGPICKLING_aaaaa_converted.methylC >TESTING/TESTING.graph.methyl
+
+
+### Convert .graph.methyl (input) to .methylC (output) using precomputed dictionaries pickle files and Segment-Offset keys files
+# This section will take a .graph.methyl file and sort it by segment and offset and replace the old file with the sorted one
+# Then it will take the sorted .graph.methyl file and split it based on which TESTING/TESTINGPICKLING_*_converted.methylC file the segment and offset are in
+# Then it will take each of the split files and convert them to .methylC files
+
+# Sort .graph.methyl (input) file
+sort -k1,1 -k2,2n TESTING/TESTING.graph.methyl >TESTING/TESTING.graph.methyl.sorted
+
+# Generate segment and offset keys from precomputed graph position files
+for i in $(ls TESTING/*.methylC); do awk -F "\t" '{print $9"\t"$10"\t"}' $i | sort | uniq >$i"_TESTING.graph.methyl.sorted_Keys.txt"; done
+
+# Split .graph.methyl (input) file based on keys (precomputed lookup derived offset-segment keys)
+for i in $(ls TESTING/*.methylC); do grep -F -f $i"_TESTING.graph.methyl.sorted_Keys.txt" TESTING/TESTING.graph.methyl.sorted >$i"_TESTING.graph.methyl.sorted_Split.graph.methyl"; done
+
+# Generate a parameters file for converting the split .graph.methyl files to .methylC files
+# The split .graph.methyl files as the first column, the corresponding pickle file as the second column, and the output .methylC file as the third column
+# Use the paste and find commands to generate this file
+paste <(find TESTING/ -name "*_TESTING.graph.methyl.sorted_Split.graph.methyl") <(find TESTING/ -name "*_TESTING.graph.methyl.sorted_Split.graph.methyl" | awk -F "converted.methylC" '{print $1"converted.pkl"}') <(find TESTING/ -name "*_TESTING.graph.methyl.sorted_Split.graph.methyl" | sed s/".graph.methyl.sorted_Split.graph.methyl"/".methylC"/g ) >TESTING_CONVERTING.parameters
+
+# Convert graph.methyl to .methylC
+sbatch --array=1-$( cat TESTING_CONVERTING.parameters | wc -l ) /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh TESTING_CONVERTING.parameters
+
+Submitted batch job 9748725
+
+# Clean up
+mkdir TESTING/Logs
+mv slurm-* TESTING/Logs/
+
+# Merge .methylC converted files and delete the split files
+cat TESTING/TESTINGPICKLING_*_converted.methylC_TESTING.methylC >TESTING/TESTING.graph.methylC
+
+# Clean up
+rm TESTING/TESTINGPICKLING_*_converted.methylC_TESTING.methylC
+rm TESTING/TESTINGPICKLING_*_converted.methylC_TESTING.graph.methyl.sorted_Split.graph.methyl
+rm TESTING/TESTINGPICKLING_*_converted.methylC_TESTING.graph.methyl.sorted_Keys.txt
+rm TESTING/TESTINGPICKLING_*_converted.methylC_TESTING.graph.methyl.sorted
+
+# No obvious bugs seen yet. So it seems to work
+
+# Final clean up
+mkdir TESTING/InputsAndParameters
+mv TESTING.graph.methyl TESTING/InputsAndParameters/
+mv TESTINGPICKLING.parameters TESTING/InputsAndParameters/
+mv TESTING_CONVERTING.parameters TESTING/InputsAndParameters/
+mv TEST.methylC TESTING/InputsAndParameters/
+mv TESTING/ TESTING_FAKE_GRAPH_LOOKUP/
+
+
+
+
+
+##### Test single real data file conversion
+### The essential files for converting real .graph.methyl files from precomputed positions are:
+# 1. The split .pkl files
+# 2. The sorted segment and offset keys files
+
+cd /scratch/hllab/Juan/methylGrapher/TESTING
+
+
+
+### convert real data set named CG.graph.methyl to CG.graph.methylC
+# This will be done using the precomputed dictionaries and segment-offset keys files
+# The dictionaries and segment-offset keys files are in the ../GraphFiles/SplitAnnotations/ directory
+# The real data is named CG.graph.methyl
+# The output will be named Precomputed.CG.graph.methylC
+
+
+
+### Sort .graph.methyl (input) file
+# generate parameters file for sorting .graph.methyl file
+# The first column is the .graph.methyl file to be sorted
+# The second column is the name of the sorted .graph.methyl file
+# Use the find and paste commands to generate this file
+# In this instance there is only one file to sort, but I want this code to be able to handle multiple files
+paste <(find . -name "CG.graph.methyl") <(find . -name "CG.graph.methyl" | sed s/".graph.methyl"/".graph.methyl.sorted"/g ) >CG.graph.methyl_SORTING.parameters
+
+# Sort .graph.methyl (input) file using the parameters file
+sbatch --array=1-$( cat CG.graph.methyl_SORTING.parameters | wc -l ) /scratch/hllab/Juan/General_Code/run_Batch_sort_Graph.Methyl_files.sh CG.graph.methyl_SORTING.parameters
+
+Submitted batch job 9749908
+
+# Clean up
+mkdir Logs/SORTING
+mv slurm-* Logs/SORTING/
+
+
+
+### Split .graph.methyl (input) file based on keys (precomputed lookup derived offset-segment keys)
+mkdir SplitInputFiles
+
+# generate parameters file for splitting .graph.methyl file based on keys using the run_Batch_SplitFiles_by_PreSplitKeys.sh script
+# The first column is the .graph.methyl file to be split
+# The second column each key file to split the .graph.methyl file by
+# The third column is the name of the output split .graph.methyl files in the SplitInputFiles/ directory
+# Use the find and paste commands to generate this file
+
+paste <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "CG.graph.methyl.sorted"}') <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "SplitInputFiles/"$5"__CG.graph.methyl.sorted"}') >CG.graph.methyl_SPLITTING.parameters
+
+# how many job are there?
+cat CG.graph.methyl_SPLITTING.parameters | wc -l
+
+# run splitting script
+sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_Specific.sh CG.graph.methyl_SPLITTING.parameters
+
+Submitted batch job 9751842
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9751842 | grep ".batch" | grep "COMPLETED" | wc -l
+
+# this will check what the max memory usage was (in GB)
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9751842 | grep ".batch" | awk -F "|" '{print $3*0.000000001}' | sort -n | tail -n 1
+
+# Clean up
+mkdir Logs/SPLITTING_REAL_DATA
+mv slurm-* Logs/SPLITTING_REAL_DATA/
+
+
+
+### Convert split .graph.methyl files to .methylC files
+mkdir SplitOutputFiles
+
+# generate parameters file for converting split .graph.methyl files to .methylC files
+# The first column is the split .graph.methyl file to be converted in the SplitInputFiles/ directory
+# The second column is the corresponding pickle file in the ../GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/ directory. The second "_" delimited field is the unique identifier for the pickle file
+# The third column is the name of the output .methylC file in the SplitInputFiles/ directory
+
+paste <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted") <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted" | awk -F "__" '{print $1}' | awk -F "_" '{print "../GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$NF"_converted.pkl"}') <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted" | awk -F "/|__" '{print "SplitOutputFiles/"$2".methylC"}' | sed s/"converted.methylC_sorted_Keys_"/""/g) >CG.graph.methyl_CONVERTING.parameters
+
+# how many job are there?
+cat CG.graph.methyl_CONVERTING.parameters | wc -l
+
+# run converting script
+sbatch --array=1-858%100 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh CG.graph.methyl_CONVERTING.parameters
+
+Submitted batch job 9755363
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9755363 | grep ".batch" | grep "COMPLETED" | wc -l
+
+858
+
+# this will check how many jobs failed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9755363 | grep ".batch" | grep -v "COMPLETED" | wc -l
+
+0
+
+# this will report the jobs which failed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9755363 | grep ".batch" | grep -v "COMPLETED"
+
+
+# this will check what the max memory usage was (in GB)
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9755363 | grep ".batch" | awk -F "|" '{print $3*0.000000001}' | sort -n | tail -n 1
+
+9.87724
+
+
+# Clean up
+mkdir Logs/CONVERTING_REAL_DATA
+mv slurm-* Logs/CONVERTING_REAL_DATA/
+
+# Combine .methylC converted files and delete the split files
+cat SplitOutputFiles/*.methylC >CG.graph.Precomputed.methylC
+
+
+
+### Testing to make sure the numbers add up
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+wc -l CG.graph.methyl
+55,341,938
+
+wc -l CG.graph.Precomputed.methylC
+96,922,758
+
+cat CG.graph.Precomputed.methylC | sort | uniq | wc -l
+88,862,043
+
+# I interpret this to mean that there is an issue in how the input file is split using the key files. Somehow it is generating more entries that the number in the input file.
+
+### I need to figure out why the split is generating more entries than the input file has
+awk -F ":" '{print $2":"$3}' CG.graph.Precomputed.methylC | sort | uniq -c >"CountOfUniqSegmentOffsetPairs.txt"
+
+awk -F " " '{if ($1!=1) print $0}' CountOfUniqSegmentOffsetPairs.txt | head
+    55335712 :
+          2 10098718:0
+          2 10098726:0
+          2 10098740:0
+          2 10098751:0
+          2 10098780:0
+          2 10098830:0
+          2 10098888:24
+          2 10098888:241
+          2 10098909:0
+
+
+# How is the grep working?
+
+## without keys file
+grep -P "10098888:24" CG.graph.Precomputed.methylC
+    NA	NA	NA	CG	0.6363636363636364	-	11	128:10098888:24
+    NA	NA	NA	CG	0.3333333333333333	+	6	128:10098888:241
+    NA	NA	NA	CG	0.6363636363636364	-	11	128:10098888:24
+    NA	NA	NA	CG	0.3333333333333333	+	6	128:10098888:241
+    NA	NA	NA	CG	0.5625	-	16	128:10098888:242
+
+grep -P "10098888\t24\t" CG.graph.methyl
+    10098888	24	-	CG	4	7	11	0.6363636363636364
+# so there's only one entry to start with
+
+grep -P "10098888\t24\t" SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*__CG.graph.methyl.sorted
+    SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaaa__CG.graph.methyl.sorted:10098888	24	-	CG	4	7	11	0.6363636363636364
+    SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaab__CG.graph.methyl.sorted:10098888	24	-	CG	4	7	11	0.6363636363636364
+    SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaef__CG.graph.methyl.sorted:10098888	24	-	CG	4	7	11	0.6363636363636364
+# but it's getting split into 3 separate split input files. Which means it's matching all the corresponding key files
+
+grep -P "10098888\t24\t" ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aa*
+    ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaef:10098888	24
+# It seems to only return a single match, which suggests that using the -F -f approach is giving a different result
+
+
+## With keys file
+echo -e "10098888\t24\t" >TESTKEY.txt
+grep -F -f TESTKEY.txt CG.graph.methyl.sorted
+    10098888	24	-	CG	4	7	11	0.6363636363636364
+# It only returns 1 match
+
+grep -F -f TESTKEY.txt ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aa*
+    ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaef:10098888	24
+# it only returns one match
+
+grep -F -f TESTKEY.txt SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*__CG.graph.methyl.sorted
+    SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaaa__CG.graph.methyl.sorted:10098888	24	-	CG	4	7	11	0.6363636363636364
+    SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaab__CG.graph.methyl.sorted:10098888	24	-	CG	4	7	11	0.6363636363636364
+    SplitInputFiles/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaef__CG.graph.methyl.sorted:10098888	24	-	CG	4	7	11	0.6363636363636364
+# it returns 3 again
+
+## taken together the problem seems to be with the splitting of sorted inputs using the key files
+## I need to try going the other way, so I will pull out the specific input entry and see which key files pull it out
+
+grep -F -f TESTKEY.txt CG.graph.methyl.sorted >TESTINPUT.txt
+
+cat TESTKEY.txt
+    10098888	24
+
+grep -F -f ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaef TESTINPUT.txt
+    [10098888]	[24]	-	CG	4	7	11	0.6363636363636364
+
+grep -F -f ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaab TESTINPUT.txt
+    100[98888]	[24]	-	CG	4	7	11	0.6363636363636364
+
+grep -F -f ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaaa TESTINPUT.txt
+    10098888	24	-	CG	[4]	[7]	11	0.6363636363636364
+
+# I added the brackets to show where the key file is matching the input file
+
+# So it seems the issue is that other simple keys are matching part of the input entry. I need to make it so that the key file only matches the first two fields of the input file
+
+# try requiring it be a complete word
+grep -F -f ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaef -w TESTINPUT.txt
+    [10098888]	[24]	-	CG	4	7	11	0.6363636363636364
+
+grep -F -f ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaab -w TESTINPUT.txt
+
+grep -F -f ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_aaaaa -w TESTINPUT.txt
+
+# this seems to work...
+
+
+
+
+
+
+### I need to re-run the process starting from the input splitting step
+# Clean up the previous run
+mv SplitInputFiles/ SplitInputFiles_PREVIOUS/
+mv Logs/SPLITTING_REAL_DATA/ Logs/SPLITTING_REAL_DATA_PREVIOUS/
+
+
+### Split .graph.methyl (input) file based on keys (precomputed lookup derived offset-segment keys) using the run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh script
+mkdir SplitInputFiles
+
+# generate parameters file for splitting .graph.methyl file based on keys using the run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh script
+# The first column is the .graph.methyl file to be split
+# The second column each key file to split the .graph.methyl file by
+# The third column is the name of the output split .graph.methyl files in the SplitInputFiles/ directory
+# Use the find and paste commands to generate this file
+
+paste <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "CG.graph.methyl.sorted"}') <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "SplitInputFiles/"$5"__CG.graph.methyl.sorted"}') >CG.graph.methyl_SPLITTING.parameters
+
+# how many job are there?
+cat CG.graph.methyl_SPLITTING.parameters | wc -l
+
+# run splitting script
+sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh CG.graph.methyl_SPLITTING.parameters
+
+Submitted batch job 9758866
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9758866 | grep ".batch" | grep "COMPLETED" | wc -l
+
+# this will check what the max memory usage was (in GB)
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9758866 | grep ".batch" | awk -F "|" '{print $3*0.000000001}' | sort -n | tail -n 1
+
+# Clean up
+mkdir Logs/SPLITTING_REAL_DATA
+mv slurm-* Logs/SPLITTING_REAL_DATA/
+
+
+
+
+
+
+### Convert split .graph.methyl files to .methylC files
+# Clean up the previous run
+mv SplitOutputFiles/ SplitOutputFiles_PREVIOUS/
+mv Logs/CONVERTING_REAL_DATA/ Logs/CONVERTING_REAL_DATA_PREVIOUS/
+mkdir SplitOutputFiles
+
+# generate parameters file for converting split .graph.methyl files to .methylC files
+# The first column is the split .graph.methyl file to be converted in the SplitInputFiles/ directory
+# The second column is the corresponding pickle file in the ../GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/ directory. The second "_" delimited field is the unique identifier for the pickle file
+# The third column is the name of the output .methylC file in the SplitInputFiles/ directory
+
+paste <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted") <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted" | awk -F "__" '{print $1}' | awk -F "_" '{print "../GraphFiles/SplitAnnotations/Converted_PositionsPickleFiles/Split.C.Annotations.GRCh38-f1g-90-mc-aug11_"$NF"_converted.pkl"}') <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted" | awk -F "/|__" '{print "SplitOutputFiles/"$2".methylC"}' | sed s/"converted.methylC_sorted_Keys_"/""/g) >CG.graph.methyl_CONVERTING.parameters
+
+# how many job are there?
+cat CG.graph.methyl_CONVERTING.parameters | wc -l
+
+# run converting script
+sbatch --array=1-858%100 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh CG.graph.methyl_CONVERTING.parameters
+
+Submitted batch job 9761053
+
+# this will check how many jobs completed successfully
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9761053 | grep ".batch" | grep "COMPLETED" | wc -l
+
+858
+
+# this will check how many jobs failed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9761053 | grep ".batch" | grep -v "COMPLETED" | wc -l
+
+0
+
+# this will report the jobs which failed
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9761053 | grep ".batch" | grep -v "COMPLETED"
+
+
+# this will check what the max memory usage was (in GB)
+sacct -P -n -a --format JobID,State,MaxRSS --noconvert -j 9761053 | grep ".batch" | awk -F "|" '{print $3*0.000000001}' | sort -n | tail -n 1
+
+0.975041
+
+
+# Clean up
+mkdir Logs/CONVERTING_REAL_DATA
+mv slurm-* Logs/CONVERTING_REAL_DATA/
+
+# Combine .methylC converted files and delete the split files
+mv CG.graph.Precomputed.methylC CG.graph.Precomputed.methylC_PREVIOUS
+cat SplitOutputFiles/*.methylC >CG.graph.Precomputed.methylC
+
+
+
+
+
+
+### Testing to make sure the numbers add up
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+wc -l CG.graph.methyl
+55,341,938
+
+wc -l CG.graph.Precomputed.methylC
+55,335,712
+
+cat CG.graph.Precomputed.methylC | sort | uniq | wc -l
+55,335,712
+
+# They still don't match perfectly... Time to search through why...
+mv CountOfUniqSegmentOffsetPairs.txt CountOfUniqSegmentOffsetPairs_PREVIOUS.txt
+awk -F ":" '{print $2":"$3}' CG.graph.Precomputed.methylC | sort | uniq -c >"CountOfUniqSegmentOffsetPairs.txt"
+
+awk -F " " '{if ($1!=1) print $0}' CountOfUniqSegmentOffsetPairs.txt | head
+# None returned
+
+wc -l CountOfUniqSegmentOffsetPairs.txt
+55,335,712
+
+# What entries in the original file are not in the converted file?
+
+cut -d $'\t' -f 1-2 CG.graph.methyl | sort | uniq >Input.SegmentOffsetPairs.txt
+cut -d $':' -f 2-3 CG.graph.Precomputed.methylC | sort | uniq | sed s/":"/"\t"/g >Output.SegmentOffsetPairs.txt
+
+wc -l Input.SegmentOffsetPairs.txt
+
+55,341,938
+
+wc -l Output.SegmentOffsetPairs.txt
+
+55,335,712
+
+grep -F -f Output.SegmentOffsetPairs.txt -w -v Input.SegmentOffsetPairs.txt >MissingEntries.txt
+
+wc -l MissingEntries.txt
+6,226
+
+# all the missing entries come from segment: 81415957
+# I need to check for the presence of this segment in the unsplit graph file
+
+# Check in the cytosine annotations
+grep -P "81415957\t" ../GraphFiles/C.Annotations.GRCh38-f1g-90-mc-aug11.txt
+
+# No results
+
+# Check in the graph segments file
+grep -P "81415957\t" ../GraphFiles/Segments.GRCh38-f1g-90-mc-aug11.gfa
+
+# No results
+
+### Summary:
+# Taken together this means that the segment is not present in the graph file. This is a good thing.
+# It means that the issue isn't in my pipeline, but rather in the original graph file.
+# It may suggest that we are using a different version of the genome-graph than the one used to generate the .graph.methyl file.
+# For now I will ignore this issue, but I will need to check with Wenjin as to what version of the genome-graph he used.
+
+
+#### Final clean PREVIOUS files
+rm -r SplitInputFiles_PREVIOUS/
+rm -r Logs/SPLITTING_REAL_DATA_PREVIOUS/
+rm -r SplitOutputFiles_PREVIOUS/
+rm -r Logs/CONVERTING_REAL_DATA_PREVIOUS/
+rm CG.graph.Precomputed.methylC_PREVIOUS
+rm CountOfUniqSegmentOffsetPairs_PREVIOUS.txt
+
+
+
+
+### This section will count up the number of each conversion code in the converted file (CG.graph.Precomputed.methylC)
+# The conversion code is the 8th column of the tab delimited file
+# It is further the 1st field of the 8th column delimited by a colon
+
+cut -f 8 CG.graph.Precomputed.methylC | awk -F ":" '{print $1}' | sort | uniq -c | sort -n >ConversionCodeCounts.txt
+cat ConversionCodeCounts.txt
+
+[Count] [ConversionCode]
+51 1
+123 102
+1405 42
+1638 98
+2432 118
+6449 38
+9258 114
+53331 100
+122690 34
+513550 96
+1021923 46
+2901518 7
+50701344 3
+
+
+### This section will take in the ConversionCodeCounts.txt file and calculate the percent of each conversion code
+# The percent is calculated by dividing the count of each conversion code by the total number of entries in the converted file
+# The total number of entries is the sum of the counts of each conversion code which is the first column of the ConversionCodeCounts.txt file
+# The output will be a tab delimited file with the conversion code in the first column and the count and fraction in the second and third columns respectively
+# all of this after logging into the interactive node with 16GB of memory
+
+srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+TotalEntries=$( awk -F " " '{sum+=$1} END {print sum}' ConversionCodeCounts.txt )
+awk -F " " -v TotalEntries=$TotalEntries '{print $2"\t"$1"\t"$1/TotalEntries}' ConversionCodeCounts.txt >ConversionCodeTable.txt
+
+exit
+
+cat ConversionCodeTable.txt
+
+[ConversionCode] [Count] [Fraction]
+1	51	9.21647e-07
+102	123	2.2228e-06
+42	1405	2.53905e-05
+98	1638	2.96011e-05
+118	2432	4.39499e-05
+38	6449	0.000116543
+114	9258	0.000167306
+100	53331	0.000963772
+34	122690	0.00221719
+96	513550	0.00928063
+[46]	1021923	0.0184677
+[7]	2901518	0.0524348
+[3]	50701344	0.91625
+
+# 3 means it is a reference and has an anchor
+# 7 means it is a reference and has an anchor and a length <3 bp
+# 46 means is is a query and has an anchor and a length <3 bp and that the length of the query is the same as the length of the reference
+
+
