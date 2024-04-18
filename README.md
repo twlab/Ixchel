@@ -22,3 +22,4 @@ Ixchel requires a genome graph in GFA format. It was designed to work with graph
 ## Run surjection
 
 ## Extract and interpret codes
+
