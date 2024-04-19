@@ -340,6 +340,54 @@ def makeLinkArrayPickles(args):
     f.close()
 
 
+def split_annotations_file(args):
+    print("Splitting annotations file")
+    input_file = args.input
+    base = os.path.splitext(input_file)[0]  # Removes the current extension
+    output_prefix = base + "_"
+    lines_per_chunk = args.lines_per_chunk
+    print(f"... Input file: {input_file}")
+    print(f"... Output prefix: {output_prefix}")
+    print(f"... Lines per chunk: {lines_per_chunk}")
+
+    try:
+        with open(input_file, 'r') as file:
+            count = 0
+            file_number = 1
+            current_file = None
+
+            for line in file:
+                if count % lines_per_chunk == 0:
+                    if current_file:
+                        current_file.close()
+                    current_file = open(f"{output_prefix}_{file_number:05d}", 'w')  # 5 digits padding
+                    file_number += 1
+                current_file.write(line)
+                count += 1
+
+            if current_file:
+                current_file.close()
+
+        print("... Split complete!")
+
+    except Exception as e:
+        print(f"An error occurred!: {e}")
+
+# Example usage:
+# This should be part of your Python script that handles command-line arguments or similar triggers
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) != 4:
+        print("Usage: python split_script.py <inputfile> <outputprefix> <linesperchunk>")
+        sys.exit(1)
+
+    inputfile = sys.argv[1]
+    outputprefix = sys.argv[2]
+    linesperchunk = int(sys.argv[3])
+
+    split_file(inputfile, outputprefix, linesperchunk)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
@@ -390,10 +438,13 @@ def main():
     parser_pickle = subparsers.add_parser('makeLinkArrayPickles', help='make link array pickles')
     parser_pickle.add_argument('ReferenceSegmentsPickle', type=str, help='Reference segments pickle file')
     parser_pickle.add_argument('FilteredLinksPickle', type=str, help='Filtered links pickle file')
-    #parser_pickle.add_argument('UpstreamOutputFile', type=str, help='Upstream output file')
-    #parser_pickle.add_argument('DownstreamOutputFile', type=str, help='Downstream output file')
     parser_pickle.set_defaults(func=makeLinkArrayPickles)
 
+    # Parser for splitting annotations file. lines_per_chunk should have a default value
+    parser_split = subparsers.add_parser('split_annotations_file', help='split annotations file into chunks')
+    parser_split.add_argument('input', type=str, help='Annotations file to split')
+    parser_split.add_argument('--lines_per_chunk', type=int, help='number of lines per chunk', default=100000)
+    parser_split.set_defaults(func=split_annotations_file)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
