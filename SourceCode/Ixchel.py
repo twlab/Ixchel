@@ -77,7 +77,7 @@ def main():
     # Parser for extracting annotations
     parser_extract = subparsers.add_parser('extract_annotations', help='extract cytosine annotations from a graph')
     parser_extract.add_argument('input', type=str, help='input GFA Segments file')
-    parser_extract.add_argument('output', type=str, help='output annotations file')
+    #parser_extract.add_argument('output', type=str, help='output annotations file')
     parser_extract.set_defaults(func=extract_cytosine_annotations)
 
     args = parser.parse_args()
