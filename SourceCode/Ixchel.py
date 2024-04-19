@@ -29,6 +29,10 @@ def extract_segments(args):
             if line.startswith('S'):
                 f_out.write(line)
 
+# Use subprocess to call wc -l
+def count_lines(filename):
+    result = subprocess.run(['wc', '-l', filename], stdout=subprocess.PIPE, text=True)
+    return int(result.stdout.split()[0])
 
 # Main function to extract cytosine annotations
 def extract_cytosine_annotations(args):
@@ -55,12 +59,14 @@ def extract_cytosine_annotations(args):
 
     # use system commands to report some statistics
     ## How many segments are there?
-    system_command = f"grep -c 'S' {input_file}"
-    print(f"Number of Segments: {system_command}")
+    segments_count = count_lines(input_file)
+    print(f"Total segments lines written to {input_file}: {segments_count}")
 
     ## How many Cytosine annotations need to be converted?
-    system_command = f"grep -c 'C' {output_file}"
-    print(f"Number of Cytosine annotations: {system_command}")
+    annotations_count = count_lines(output_file)
+    print(f"Total lines written to {output_file}: {annotations_count}")
+
+
 
 
 def main():
