@@ -182,7 +182,8 @@ def extract_links(args):
             if line.startswith('L'):
                 f_out.write(line)
 
-def create_link_search_keys(input_file, search_keys_file):
+def create_link_search_keys(input_file):
+    search_keys_file = "temp_link_search_keys.txt"
     seen = set()  # This set will automatically handle unique entries
     with open(input_file, 'r') as infile:
         for line in infile:
@@ -197,8 +198,8 @@ def create_link_search_keys(input_file, search_keys_file):
             outfile.write(key)
 
 def filter_links(input_file, refsegments_file):
-    search_keys_file = "temp_link_search_keys.txt"
     output_file = f"FilteredLinks.{input_file}"
+    search_keys_file = "temp_link_search_keys.txt"
     create_link_search_keys(refsegments_file, search_keys_file)
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
