@@ -682,6 +682,29 @@ def precompute_conversion(args):
     input.close()
     print("... Complete!")
 
+def SerializePrecomputedPositionsHash(args):
+    print("Serializing PrecomputedPositionsHash")
+    INPUTPRECOMPUTEDFILE = args.precomputedfile
+    base = os.path.splitext(INPUTPRECOMPUTEDFILE)[0]  # Removes the current extension
+    OUTPUTPICKLEFILE = base + ".pkl"
+    ### This section will import the PreComputedPositionsFile and create a dictionary of the data in the PreComputedPositionsFile named ConversionDictionary. It will print a message when it has processed 1% increments of the file.
+    ConversionDictionary = defaultdict(list)
+    print('... Reading in PreComputedPositionsFile')
+    with open(INPUTPRECOMPUTEDFILE, 'r') as PreComputedPositionsFile:
+        for line in PreComputedPositionsFile:
+            line = line.strip().split('\t')
+            ConversionDictionary[(line[8], line[9])] = (line[0], line[1], line[2], line[7])
+            if len(ConversionDictionary) % 1000000 == 0:
+                print('Processed ' + str(len(ConversionDictionary)) + ' lines so far.')
+
+    PreComputedPositionsFile.close()
+
+    print('... Saving ConversionDictionary as a pickle file')
+    ### This section will pickle ConversionDictionary and save it as a pickle file with the name in PickleFile.
+    with open(OUTPUTPICKLEFILE, 'wb') as PickleFile:
+        pickle.dump(ConversionDictionary, PickleFile, protocol=pickle.HIGHEST_PROTOCOL)
+    PickleFile.close()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
@@ -753,6 +776,10 @@ def main():
     parser_precompute.add_argument('DoubleAnchorFile', type=str, help='DoubleAnchorFile')
     parser_precompute.set_defaults(func=precompute_conversion)
 
+    # Parser for serializing precomputed positions hash
+    parser_pickle = subparsers.add_parser('SerializePrecomputedPositionsHash', help='serialize precomputed positions hash')
+    parser_pickle.add_argument('precomputedfile', type=str, help='Precomputed positions file to serialize')
+    parser_pickle.set_defaults(func=SerializePrecomputedPositionsHash)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):

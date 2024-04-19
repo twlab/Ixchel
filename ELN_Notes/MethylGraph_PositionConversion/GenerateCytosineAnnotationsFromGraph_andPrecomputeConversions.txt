@@ -137,7 +137,10 @@ mv slurm-9712636_* Logs/ConvertSplitFiles/
 cd /scratch/hllab/Juan/methylGrapher/GraphFiles
 
 # Make params file
-paste <(find SplitAnnotations/ -type f -name "*_converted.methylC") <(find SplitAnnotations/ -type f -name "*_converted.methylC" | awk -F ".methylC" '{print $1".pkl"}') >PicklePrecomputedPositionsHash_Params.txt
+paste \
+<(find SplitAnnotations/ -type f -name "*_converted.methylC") \
+<(find SplitAnnotations/ -type f -name "*_converted.methylC" | awk -F ".methylC" '{print $1".pkl"}') \
+>PicklePrecomputedPositionsHash_Params.txt
 
 # how many jobs?
 wc -l PicklePrecomputedPositionsHash_Params.txt
