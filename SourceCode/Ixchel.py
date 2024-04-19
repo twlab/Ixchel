@@ -140,23 +140,23 @@ def main():
 
     # Parser for extracting segments
     parser_segments = subparsers.add_parser('extract_segments', help='extract segment lines from a graph')
-    parser_segments.add_argument('input', type=str, help='input GFA file')
+    parser_segments.add_argument('input', type=str, help='GFA file to extract segments from')
     parser_segments.set_defaults(func=extract_segments)
 
     # Parser for extracting annotations
     parser_extract = subparsers.add_parser('extract_annotations', help='extract cytosine annotations from a graph')
-    parser_extract.add_argument('input', type=str, help='input GFA Segments file')
+    parser_extract.add_argument('input', type=str, help='Segments file to extract annotations from')
     parser_extract.set_defaults(func=extract_cytosine_annotations)
 
     # Parser for splitting segments into RefOnly and QueryOnly
     parser_split = subparsers.add_parser('split_segments', help='split segments into RefOnly and QueryOnly files based on reference name')
-    parser_split.add_argument('input', type=str, help='input Segments file')
+    parser_split.add_argument('input', type=str, help='Segments file to split')
     parser_split.add_argument('--reference_name', type=str, help='reference name to filter by, default is GRCh38', default='GRCh38')
     parser_split.set_defaults(func=split_segments)
 
     # Parser for making a reference segment hash pickle
     parser_pickle = subparsers.add_parser('makeRefSegmentHashPickle', help='make a reference segment hash pickle')
-    parser_pickle.add_argument('input', type=str, help='input segments file')
+    parser_pickle.add_argument('input', type=str, help='Segments file to serialize')
     parser_pickle.set_defaults(func=makeRefSegmentHashPickle)
 
     args = parser.parse_args()
