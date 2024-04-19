@@ -342,7 +342,8 @@ def makeLinkArrayPickles(args):
 def split_annotations_file(args):
     print("Splitting annotations file")
     input_file = args.input
-    os.mkdir("split_annotations")
+    if not os.path.exists("split_annotations"):
+        os.mkdir("split_annotations")
     base = os.path.splitext(input_file)[0]  # Removes the current extension
     output_prefix = "split_annotations/" + base + "_"
     lines_per_chunk = args.lines_per_chunk
