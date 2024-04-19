@@ -103,7 +103,7 @@ def makeRefSegmentHashPickle(args):
     base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
     OUTPUTFILE = f"{base}.pkl"
 
-    print("Input file: ")
+    print("... Input file: ")
     print(INPUTFILE)
 
     with open(INPUTFILE) as f:
@@ -126,7 +126,7 @@ def makeRefSegmentHashPickle(args):
                 bed_dict[SEGMENTID]["StableOffset"] = STABLEOFFSET
 
     # Save nested dictionary as pickle file
-    print("Saving to: ")
+    print("... Saving to: ")
     print(OUTPUTFILE)
 
     f = open(OUTPUTFILE, "wb")
@@ -141,7 +141,7 @@ def makeQuerySegmentHashPickle(args):
     base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
     OUTPUTFILE = f"{base}.pkl"
 
-    print("Input file: ")
+    print("... Input file: ")
     print(INPUTFILE)
 
     with open(INPUTFILE) as f:
@@ -185,7 +185,7 @@ def extract_links(args):
 def create_link_search_keys(refsegmentsfile):
     search_keys_file = "temp_link_search_keys.txt"
     seen = set()  # This set will automatically handle unique entries
-    print(f"Creating search keys from {refsegmentsfile}")
+    print(f"... Creating search keys from {refsegmentsfile}")
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
             if line.startswith('S'):  # To mimic 'S\t"$2"\t' -> We take lines starting with 'S', THIS IS INEFFICIENT!!! REMOVE THIS
@@ -193,7 +193,7 @@ def create_link_search_keys(refsegmentsfile):
                 if len(parts) > 1:
                     key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
                     seen.add(key)  # Add to set, which keeps entries unique
-    print(f"Writing search keys to {search_keys_file}")
+    print(f"... Writing search keys to {search_keys_file}")
     with open(search_keys_file, 'w') as outfile:
         for key in sorted(seen):  # Sort the set before writing
             outfile.write(key)
@@ -203,13 +203,13 @@ def filter_links(args):
     refsegmentsfile = args.refsegmentsfile
     print(f"Filtering links from {input_file} using {refsegmentsfile}")
     output_file = f"FilteredLinks.{input_file}"
-    print(f"Generating search keys")
+    print(f"... Generating search keys")
     create_link_search_keys(refsegmentsfile)
     search_keys_file = "temp_link_search_keys.txt"
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() + "\t" for line in keys_file)  # Read all keys into a set
 
-    print(f"Filtering links using search keys")
+    print(f"... Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
             # Construct the search term in the same format as keys are stored
