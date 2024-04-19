@@ -39,7 +39,7 @@ def count_lines(filename):
 
 # Main function to extract cytosine annotations
 def extract_cytosine_annotations(args):
-    input_file = args.input
+    input_file = f"Segments.{args.input}"
     output_file = f"Annotations.{input_file}"
 
     print(f"Extracting cytosine annotations from {input_file} to {output_file}")
