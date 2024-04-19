@@ -22,6 +22,7 @@ def generate_entry_cytosine_reverse(segment_id, position):
 ## Define function to determine whether each segment has a relevant cytosine position
 def process_segment_check_for_cytosine(line):
     L = line.strip().split()
+    print(L)
     SEQUENCE = L[2]
     # determine if there are in "C" patten in the SEQUENCE string
     if "C" in SEQUENCE:
