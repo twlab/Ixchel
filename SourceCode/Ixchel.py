@@ -60,9 +60,14 @@ def extract_cytosine_annotations(args):
                     entry = generate_entry_cytosine_reverse(segment_id, pos)
                     f_out.write("\t".join(map(str, entry)) + "\n")
 
-    # Output the number of lines written
+    # use system commands to report some statistics
+    ## How many segments are there?
+    segments_count = count_lines(input_file)
+    print(f"\n")
+    print(f"    Number of segments in {input_file}: {segments_count}")
+    ## How many Cytosine annotations need to be converted?
     annotations_count = count_lines(output_file)
-    print(f"Total lines written to {output_file}: {annotations_count}")
+    print(f"    Number of annotations in {output_file}: {annotations_count}")
 
 
 def main():
