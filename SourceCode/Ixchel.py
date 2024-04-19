@@ -199,6 +199,7 @@ def create_link_search_keys(args):
             outfile.write(key)
 
 def filter_links(args):
+    print(args)
     input_file = args.input
     refsegmentsfile = args.refsegmentsfile
     print(refsegmentsfile)
