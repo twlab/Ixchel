@@ -183,9 +183,9 @@ def extract_links(args):
                 f_out.write(line)
 
 def create_link_search_keys(refsegmentsfile):
-    #refsegments_file = args.refsegmentsfile
     search_keys_file = "temp_link_search_keys.txt"
     seen = set()  # This set will automatically handle unique entries
+    print(f"Creating search keys from {refsegmentsfile}")
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
             if line.startswith('L'):  # To mimic 'L\t"$2"\t' -> We take lines starting with 'L'
@@ -193,7 +193,7 @@ def create_link_search_keys(refsegmentsfile):
                 if len(parts) > 1:
                     key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
                     seen.add(key)  # Add to set, which keeps entries unique
-
+    print(f"Writing search keys to {search_keys_file}")
     with open(search_keys_file, 'w') as outfile:
         for key in sorted(seen):  # Sort the set before writing
             outfile.write(key)
