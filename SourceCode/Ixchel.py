@@ -263,7 +263,7 @@ def makeAnchorLinkHashPickle(args):
     pickle.dump(bed_dict, f)
     f.close()
 
-    print(DOUBLEANCHORFILE)
+    print("... Saving double anchor file to:" + DOUBLEANCHORFILE)
 
     f = open(DOUBLEANCHORFILE, "wb")
     pickle.dump(doubleanchor_dict, f)
