@@ -51,7 +51,7 @@ def extract_cytosine_annotations(args):
                 # Write guanine entries (reverse complement positions)
                 for pos in guanine_positions:
                     entry = generate_entry_cytosine_reverse(segment_id, pos)
-                    f_out.write("\t".join(map(str, entry)) + "\n"
+                    f_out.write("\t".join(map(str, entry)) + "\n")
 
 
 def main():
