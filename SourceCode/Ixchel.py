@@ -182,7 +182,7 @@ def extract_links(args):
             if line.startswith('L'):
                 f_out.write(line)
 
-def create_link_search_keys(input_file, output_file):
+def create_link_search_keys(input_file, search_keys_file):
     seen = set()  # This set will automatically handle unique entries
     with open(input_file, 'r') as infile:
         for line in infile:
@@ -192,7 +192,7 @@ def create_link_search_keys(input_file, output_file):
                     key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
                     seen.add(key)  # Add to set, which keeps entries unique
 
-    with open(output_file, 'w') as outfile:
+    with open(search_keys_file, 'w') as outfile:
         for key in sorted(seen):  # Sort the set before writing
             outfile.write(key)
 
