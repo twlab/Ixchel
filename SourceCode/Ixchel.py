@@ -216,6 +216,7 @@ def filter_links(args):
             search_term = "L\t" + line.split('\t')[1] + "\t"
             print(search_term)
             if search_term in keys:
+                print("Match found")
                 outfile.write(line)  # Write to output if the search term is found in keys
 
 
