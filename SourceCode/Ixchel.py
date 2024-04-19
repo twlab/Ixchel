@@ -192,7 +192,6 @@ def create_link_search_keys(refsegmentsfile):
                 parts = line.split('\t')
                 if len(parts) > 1:
                     key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
-                    print(key)
                     seen.add(key)  # Add to set, which keeps entries unique
     print(f"Writing search keys to {search_keys_file}")
     with open(search_keys_file, 'w') as outfile:
@@ -202,7 +201,6 @@ def create_link_search_keys(refsegmentsfile):
 def filter_links(args):
     input_file = args.input
     refsegmentsfile = args.refsegmentsfile
-
     print(f"Filtering links from {input_file} using {refsegmentsfile}")
     output_file = f"FilteredLinks.{input_file}"
     print(f"Generating search keys")
@@ -210,6 +208,7 @@ def filter_links(args):
     search_keys_file = "temp_link_search_keys.txt"
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
+        print(keys)
 
     print(f"Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
