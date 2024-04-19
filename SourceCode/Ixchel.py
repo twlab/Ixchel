@@ -197,7 +197,7 @@ def create_link_search_keys(refsegments_file):
         for key in sorted(seen):  # Sort the set before writing
             outfile.write(key)
 
-def filter_links(input_file, refsegmentsfile):
+def filter_links(args):
     print(refsegmentsfile)
     output_file = f"FilteredLinks.{input_file}"
     create_link_search_keys(refsegmentsfile)
