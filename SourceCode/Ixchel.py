@@ -220,6 +220,58 @@ def filter_links(args):
     print(f"... Removing temporary search keys file")
     os.remove(search_keys_file)
 
+def makeAnchorLinkHashPickle(args):
+    bed_dict = rec_dd()
+    doubleanchor_dict = rec_dd()
+
+    INPUTFILE = args.input
+    base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
+    OUTPUTFILE = base + ".pkl"
+    DOUBLEANCHORFILE = "DoubleAnchored." + base + ".pkl"
+
+    print("Input file: ")
+    print(INPUTFILE)
+
+    with open(INPUTFILE) as f:
+        for line in f:
+            L = line.strip().split()
+            REFSEGMENTID = L[1]
+            QUERYSEGMENTID = L[3]
+            REFSTRAND = L[2]
+            QUERYSTRAND = L[4]
+            TAG = L[5]
+
+            # It looks like for the purposes of merging pickles we have to make the outer most layer ALIGNMENT
+            if bed_dict[QUERYSEGMENTID]["RefSegmentID"]:
+                # Not first anchor for downstream segment. This is a double anchor. This needs to be fixed, but I am not sure how to do it.
+                # print(["Double Anchor detected", QUERYSEGMENTID])
+                doubleanchor_dict[REFSEGMENTID]["QuerySegmentID"] = QUERYSEGMENTID
+                bed_dict[QUERYSEGMENTID]["RefSegmentID"] = REFSEGMENTID
+                bed_dict[QUERYSEGMENTID]["RefStrand"] = REFSTRAND
+                bed_dict[QUERYSEGMENTID]["QueryStrand"] = QUERYSTRAND
+                bed_dict[QUERYSEGMENTID]["Tag"] = TAG
+            else:
+                # First position for read
+                bed_dict[QUERYSEGMENTID]["RefSegmentID"] = REFSEGMENTID
+                bed_dict[QUERYSEGMENTID]["RefStrand"] = REFSTRAND
+                bed_dict[QUERYSEGMENTID]["QueryStrand"] = QUERYSTRAND
+                bed_dict[QUERYSEGMENTID]["Tag"] = TAG
+
+    # Save nested dictionary as pickle file
+    print("Saving to: ")
+    print(OUTPUTFILE)
+
+    f = open(OUTPUTFILE, "wb")
+    pickle.dump(bed_dict, f)
+    f.close()
+
+    print(DOUBLEANCHORFILE)
+
+    f = open(DOUBLEANCHORFILE, "wb")
+    pickle.dump(doubleanchor_dict, f)
+    f.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
@@ -261,6 +313,10 @@ def main():
     parser_links.add_argument('refsegmentsfile', type=str, help='Reference segments file to use for filtering links')
     parser_links.set_defaults(func=filter_links)
 
+    # Parser for making an anchor link hash pickle
+    parser_pickle = subparsers.add_parser('makeAnchorLinkHashPickle', help='make an anchor link hash pickle')
+    parser_pickle.add_argument('input', type=str, help='Links file to serialize')
+    parser_pickle.set_defaults(func=makeAnchorLinkHashPickle)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
