@@ -15,7 +15,7 @@ echo "Upstream links array file: "$UpstreamLinksArrayFile
 echo "Downstream links array file: "$DownstreamLinksArrayFile
 echo "Double anchors file: "$DoubleAnchorsFile
 
-eval $( spack load --sh python@3 )
+eval $( spack load --sh /pudl6n3 )
 eval $( spack load --sh py-numpy/i7mcgz4 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
