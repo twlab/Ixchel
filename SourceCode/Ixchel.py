@@ -217,6 +217,8 @@ def filter_links(args):
             if search_term in keys:
                 outfile.write(line)  # Write to output if the search term is found in keys
 
+    print(f"... Removing temporary search keys file")
+    os.remove(search_keys_file)
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
