@@ -269,6 +269,69 @@ def makeAnchorLinkHashPickle(args):
     pickle.dump(doubleanchor_dict, f)
     f.close()
 
+def makeLinkArrayPickles(args):
+    ReferenceSegmentsPickle = args.ReferenceSegmentsPickle
+    LinksPickle = args.FilteredLinksPickle
+    UpstreamOutputFile = args.UpstreamOutputFile
+    DownstreamOutputFile = args.DownstreamOutputFile
+
+    ref_dict = {}
+    link_dict = {}
+
+    print("Adding links segments...")
+    with open(LinksPickle, 'rb') as f:
+        link_dict = pickle.load(f)
+    f.close()
+
+    print("Adding reference segments...")
+    with open(ReferenceSegmentsPickle, 'rb') as f:
+        ref_dict = pickle.load(f)
+    f.close()
+
+    # Build arrays of upstream and downstream keys from link_dict
+    print("Building arrays of upstream and downstream keys from link_dict...")
+    upstreamkeyarray = []
+    downstreamkeyarray = []
+
+    for key, value in link_dict.items():
+        # Filter out links that aren't reference segments to reference segments
+        # print(ref_dict[value["RefSegmentID"]])
+        # print(value["RefSegmentID"])
+        # print(type(value["RefSegmentID"]))
+        # print(key)
+        # print(type(key))
+
+        if ref_dict[value["RefSegmentID"]] and ref_dict[key]:
+            downstreamkeyarray.append(key)
+            upstreamkeyarray.append(value["RefSegmentID"])
+
+        # 31611814
+        # 31611815
+        # if value["RefSegmentID"] == "31611815" and key == "31611814":
+        #     #ref_dict[value["RefSegmentID"]] and ref_dict[key]:
+        #     print("It matches")
+        #     print(ref_dict[value["RefSegmentID"]])
+        #     print(value["RefSegmentID"])
+        #     print(type(value["RefSegmentID"]))
+        #     print(repr(value["RefSegmentID"]))
+        #     print(key)
+        #     print(type(key))
+        #     print(ref_dict[key])
+        # print(upstreamkeyarray.index('31611815'))
+
+    # Save nested dictionary as pickle file
+    print("Saving to: ")
+
+    print(UpstreamOutputFile)
+    f = open(UpstreamOutputFile, "wb")
+    pickle.dump(upstreamkeyarray, f)
+    f.close()
+
+    print(DownstreamOutputFile)
+    f = open(DownstreamOutputFile, "wb")
+    pickle.dump(downstreamkeyarray, f)
+    f.close()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
@@ -315,6 +378,15 @@ def main():
     parser_pickle = subparsers.add_parser('makeAnchorLinkHashPickle', help='make an anchor link hash pickle')
     parser_pickle.add_argument('input', type=str, help='Filtered reference as source links file to serialize')
     parser_pickle.set_defaults(func=makeAnchorLinkHashPickle)
+
+    # Parser for making link array pickles
+    parser_pickle = subparsers.add_parser('makeLinkArrayPickles', help='make link array pickles')
+    parser_pickle.add_argument('ReferenceSegmentsPickle', type=str, help='Reference segments pickle file')
+    parser_pickle.add_argument('FilteredLinksPickle', type=str, help='Filtered links pickle file')
+    parser_pickle.add_argument('UpstreamOutputFile', type=str, help='Upstream output file')
+    parser_pickle.add_argument('DownstreamOutputFile', type=str, help='Downstream output file')
+    parser_pickle.set_defaults(func=makeLinkArrayPickles)
+
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
