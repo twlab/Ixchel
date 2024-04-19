@@ -384,7 +384,8 @@ def precompute_conversion(args):
     ReferenceSegmentsPickle = args.ReferenceSegmentsPickle
     QuerySegmentsPickle = args.QuerySegmentsPickle
     LinksPickle = args.LinksPickle
-    OutputFile = AnnotationFile + ".converted"
+    os.mkdir("split_annotations")
+    OutputFile = "split_annotations/" + AnnotationFile + ".converted"
     RefOnlyParam = args.RefOnlyParam
     UpstreamOutputFile = args.UpstreamOutputFile
     DownstreamOutputFile = args.DownstreamOutputFile
