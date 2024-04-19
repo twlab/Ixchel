@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import jsonpickle
 import dill
-
+import subprocess
 
 # Define function to generate entry for each cytosine position with "+" sense
 def generate_entry_cytosine(segment_id, position):
