@@ -196,14 +196,14 @@ def create_link_search_keys(input_file, output_file):
         for key in sorted(seen):  # Sort the set before writing
             outfile.write(key)
 
-def filter_links(input_file, source_file):
+def filter_links(input_file, refsegments_file):
     search_keys_file = "temp_link_search_keys.txt"
     output_file = f"FilteredLinks.{input_file}"
-    create_link_search_keys(input_file, search_keys_file)
+    create_link_search_keys(refsegments_file, search_keys_file)
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
 
-    with open(source_file, 'r') as infile, open(output_file, 'w') as outfile:
+    with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
             # Construct the search term in the same format as keys are stored
             search_term = "L\t" + line.split('\t')[1] + "\t"
@@ -248,8 +248,8 @@ def main():
 
     # Parser for creating RefSourceLinks, make link search keys, then use them to filter all links
     parser_links = subparsers.add_parser('create_link_search_keys', help='create search keys for filtering links')
-    parser_links.add_argument('input', type=str, help='GFA file to extract search keys from')
-    #parser_links.add_argument('output', type=str, help='Output file to write search keys to')
+    parser_links.add_argument('input', type=str, help='Links file to filter')
+    parser_links.add_argument('refsegments_file', type=str, help='Reference segments file to use for filtering links')
     parser_links.set_defaults(func=create_link_search_keys)
 
 
