@@ -251,7 +251,7 @@ def main():
     parser_links = subparsers.add_parser('filter_links', help='Filter links to set where the source is a reference segment')
     parser_links.add_argument('input', type=str, help='Links file to filter')
     parser_links.add_argument('refsegments_file', type=str, help='Reference segments file to use for filtering links')
-    parser_links.set_defaults(func=create_link_search_keys)
+    parser_links.set_defaults(func=filter_links)
 
 
     args = parser.parse_args()
