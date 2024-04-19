@@ -192,6 +192,7 @@ def create_link_search_keys(refsegmentsfile):
                 parts = line.split('\t')
                 if len(parts) > 1:
                     key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
+                    print(key)
                     seen.add(key)  # Add to set, which keeps entries unique
     print(f"Writing search keys to {search_keys_file}")
     with open(search_keys_file, 'w') as outfile:
