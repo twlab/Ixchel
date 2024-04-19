@@ -247,7 +247,7 @@ def main():
     parser_links.set_defaults(func=extract_links)
 
     # Parser for creating RefSourceLinks, make link search keys, then use them to filter all links
-    parser_links = subparsers.add_parser('create_link_search_keys', help='create search keys for filtering links')
+    parser_links = subparsers.add_parser('filter_links', help='Filter links to set where the source is a reference segment')
     parser_links.add_argument('input', type=str, help='Links file to filter')
     parser_links.add_argument('refsegments_file', type=str, help='Reference segments file to use for filtering links')
     parser_links.set_defaults(func=create_link_search_keys)
