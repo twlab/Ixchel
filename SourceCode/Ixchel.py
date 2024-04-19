@@ -374,7 +374,7 @@ def split_annotations_file(args):
 
 
 def precompute_conversion(args):
-    print("Precomputing conversion of: " + args.AnnotationFile)
+    print("Precomputing conversion of: " + args.AnnotationFile + " to " + args.AnnotationFile + ".converted")
 
     def rec_dd():
         return defaultdict(rec_dd)
@@ -412,8 +412,6 @@ def precompute_conversion(args):
     with open(DoubleAnchorFile, 'rb') as f:
         doubleanchor_dict = pickle.load(f)
     f.close()
-
-    print("... Input file:" + AnnotationFile)
 
     ### Define function to pull reference segment coordinates
     # This setting returns a different format than the other setting!!!
