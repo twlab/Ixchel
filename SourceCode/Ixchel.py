@@ -199,8 +199,8 @@ def create_link_search_keys(input_file):
 
 def filter_links(input_file, refsegments_file):
     output_file = f"FilteredLinks.{input_file}"
+    create_link_search_keys(refsegments_file)
     search_keys_file = "temp_link_search_keys.txt"
-    create_link_search_keys(refsegments_file, search_keys_file)
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
 
