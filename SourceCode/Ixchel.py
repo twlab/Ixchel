@@ -4,10 +4,16 @@
 import argparse
 import sys
 import numpy as np
-import jsonpickle
+from collections import defaultdict
+import pickle
 import dill
 import subprocess
 import re  # Importing the regular expressions library for pattern matching
+import os
+
+# Nested dictionary function
+def rec_dd():
+    return defaultdict(rec_dd)
 
 # Define function to generate entry for each cytosine position with "+" sense
 def generate_entry_cytosine(segment_id, position):
@@ -89,6 +95,44 @@ def split_segments(args):
     print(f"Reference lines written to {ref_output}: {count_lines(ref_output)}")
     print(f"Query lines written to {query_output}: {count_lines(query_output)}")
 
+def makeRefSegmentHashPickle(args):
+    bed_dict = rec_dd()
+
+    print("Making reference segment hash pickle")
+    INPUTFILE = args.input
+    base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
+    OUTPUTFILE = f"{base}.pkl"
+    #print(OUTPUTFILE)
+
+    print("Input file: ")
+    print(INPUTFILE)
+
+    with open(INPUTFILE) as f:
+        for line in f:
+            L = line.strip().split()
+            SEGMENTID = L[1]
+            SEQUENCELENGTH = len(L[2])
+            STABLESOURCE = L[3].split(":")[2]
+            STABLEOFFSET = L[4].split(":")[2]
+
+            # It looks like for the purposes of merging pickles we have to make the outer most layer ALIGNMENT
+            if bed_dict[SEGMENTID]["StableSource"]:
+                # Not first position for read
+                print("ERROR 1")
+                print(bed_dict[SEGMENTID]["SegmentLength"])
+            else:
+                # First postion for read
+                bed_dict[SEGMENTID]["StableSource"] = STABLESOURCE
+                bed_dict[SEGMENTID]["SegmentLength"] = SEQUENCELENGTH
+                bed_dict[SEGMENTID]["StableOffset"] = STABLEOFFSET
+
+    # Save nested dictionary as pickle file
+    print("Saving to: ")
+    print(OUTPUTFILE)
+
+    f = open(OUTPUTFILE, "wb")
+    pickle.dump(bed_dict, f)
+    f.close()
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
@@ -109,6 +153,11 @@ def main():
     parser_split.add_argument('input', type=str, help='input Segments file')
     parser_split.add_argument('--reference_name', type=str, help='reference name to filter by, default is GRCh38', default='GRCh38')
     parser_split.set_defaults(func=split_segments)
+
+    # Parser for making a reference segment hash pickle
+    parser_pickle = subparsers.add_parser('makeRefSegmentHashPickle', help='make a reference segment hash pickle')
+    parser_pickle.add_argument('input', type=str, help='input segments file')
+    parser_pickle.set_defaults(func=makeRefSegmentHashPickle)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
