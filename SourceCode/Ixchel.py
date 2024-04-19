@@ -199,16 +199,18 @@ def create_link_search_keys(refsegmentsfile):
             outfile.write(key)
 
 def filter_links(args):
-    print(args)
     input_file = args.input
     refsegmentsfile = args.refsegmentsfile
-    print(refsegmentsfile)
+
+    print(f"Filtering links from {input_file} using {refsegmentsfile}")
     output_file = f"FilteredLinks.{input_file}"
+    print(f"Generating search keys")
     create_link_search_keys(refsegmentsfile)
     search_keys_file = "temp_link_search_keys.txt"
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
 
+    print(f"Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
             # Construct the search term in the same format as keys are stored
