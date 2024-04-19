@@ -221,6 +221,7 @@ def filter_links(args):
     os.remove(search_keys_file)
 
 def makeAnchorLinkHashPickle(args):
+    print("Making anchor link hash pickle")
     bed_dict = rec_dd()
     doubleanchor_dict = rec_dd()
 
@@ -229,9 +230,7 @@ def makeAnchorLinkHashPickle(args):
     OUTPUTFILE = base + ".pkl"
     DOUBLEANCHORFILE = "DoubleAnchored." + base + ".pkl"
 
-    print("Input file: ")
-    print(INPUTFILE)
-
+    print("... Input file:" + INPUTFILE)
     with open(INPUTFILE) as f:
         for line in f:
             L = line.strip().split()
@@ -258,8 +257,7 @@ def makeAnchorLinkHashPickle(args):
                 bed_dict[QUERYSEGMENTID]["Tag"] = TAG
 
     # Save nested dictionary as pickle file
-    print("Saving to: ")
-    print(OUTPUTFILE)
+    print("... Saving to:" + OUTPUTFILE)
 
     f = open(OUTPUTFILE, "wb")
     pickle.dump(bed_dict, f)
