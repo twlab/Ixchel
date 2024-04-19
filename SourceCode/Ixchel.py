@@ -182,11 +182,11 @@ def extract_links(args):
             if line.startswith('L'):
                 f_out.write(line)
 
-def create_link_search_keys(args):
-    refsegments_file = args.refsegmentsfile
+def create_link_search_keys(refsegmentsfile):
+    #refsegments_file = args.refsegmentsfile
     search_keys_file = "temp_link_search_keys.txt"
     seen = set()  # This set will automatically handle unique entries
-    with open(refsegments_file, 'r') as infile:
+    with open(refsegmentsfile, 'r') as infile:
         for line in infile:
             if line.startswith('L'):  # To mimic 'L\t"$2"\t' -> We take lines starting with 'L'
                 parts = line.split('\t')
