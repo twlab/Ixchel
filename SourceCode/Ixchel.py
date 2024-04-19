@@ -172,6 +172,46 @@ def makeQuerySegmentHashPickle(args):
     pickle.dump(bed_dict, f)
     f.close()
 
+def extract_links(args):
+    input_file = args.input
+    output_file = f"Links.{input_file}"
+
+    print(f"Extracting links from {input_file} to {output_file}")
+    with open(input_file, 'r') as f, open(output_file, 'w') as f_out:
+        for line in f:
+            if line.startswith('L'):
+                f_out.write(line)
+
+def create_link_search_keys(input_file, output_file):
+    seen = set()  # This set will automatically handle unique entries
+    with open(input_file, 'r') as infile:
+        for line in infile:
+            if line.startswith('L'):  # To mimic 'L\t"$2"\t' -> We take lines starting with 'L'
+                parts = line.split('\t')
+                if len(parts) > 1:
+                    key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
+                    seen.add(key)  # Add to set, which keeps entries unique
+
+    with open(output_file, 'w') as outfile:
+        for key in sorted(seen):  # Sort the set before writing
+            outfile.write(key)
+
+def filter_links(search_keys_file, source_file, output_file):
+    with open(search_keys_file, 'r') as keys_file:
+        keys = set(line.strip() for line in keys_file)  # Read all keys into a set
+
+    with open(source_file, 'r') as infile, open(output_file, 'w') as outfile:
+        for line in infile:
+            # Construct the search term in the same format as keys are stored
+            search_term = f"L\t{line.split('\t')[1]}\t"
+            if search_term in keys:
+                outfile.write(line)  # Write to output if the search term is found in keys
+
+
+
+
+
+
 
 
 def main():
@@ -204,6 +244,18 @@ def main():
     parser_pickle.add_argument('input', type=str, help='Segments file to serialize')
     parser_pickle.set_defaults(func=makeQuerySegmentHashPickle)
 
+    # Parser for extracting links
+    parser_links = subparsers.add_parser('extract_links', help='extract link lines from a graph')
+    parser_links.add_argument('input', type=str, help='GFA file to extract links from')
+    parser_links.set_defaults(func=extract_links)
+
+    # Parser for creating RefSourceLinks, make link search keys, then use them to filter all links
+    parser_links = subparsers.add_parser('create_link_search_keys', help='create search keys for filtering links')
+    parser_links.add_argument('input', type=str, help='GFA file to extract search keys from')
+    parser_links.add_argument('output', type=str, help='Output file to write search keys to')
+    parser_links.set_defaults(func=create_link_search_keys)
+
+
     args = parser.parse_args()
     if not hasattr(args, 'func'):
         parser.print_help()
@@ -214,3 +266,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
