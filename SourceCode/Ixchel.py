@@ -8,6 +8,7 @@ import jsonpickle
 import dill
 import subprocess
 
+
 # Define function to generate entry for each cytosine position with "+" sense
 def generate_entry_cytosine(segment_id, position):
     return [segment_id, position, "+", "C", 0, 0, 0, 0]
@@ -29,18 +30,20 @@ def extract_segments(args):
             if line.startswith('S'):
                 f_out.write(line)
 
-# Use subprocess to call wc -l
+
+# Use subprocess to call wc -l for counting lines
 def count_lines(filename):
     result = subprocess.run(['wc', '-l', filename], stdout=subprocess.PIPE, text=True)
     return int(result.stdout.split()[0])
 
+
 # Main function to extract cytosine annotations
 def extract_cytosine_annotations(args):
     input_file = args.input
-    output_file = args.output
+    output_file = f"Annotations.{input_file}"
 
     print(f"Extracting cytosine annotations from {input_file} to {output_file}")
-    with open(input_file) as f, open(output_file, "w", buffering=1000000) as f_out:
+    with open(input_file, 'r') as f, open(output_file, "w", buffering=1000000) as f_out:
         for line in f:
             if line.startswith('S'):  # Only process segment lines
                 segment_id, sequence = line.strip().split()[1:3]
@@ -57,38 +60,25 @@ def extract_cytosine_annotations(args):
                     entry = generate_entry_cytosine_reverse(segment_id, pos)
                     f_out.write("\t".join(map(str, entry)) + "\n")
 
-    # use system commands to report some statistics
-    ## How many segments are there?
-    segments_count = count_lines(input_file)
-    print(f"\n")
-    print(f"    Total segments lines written to {input_file}: {segments_count}")
-
-    ## How many Cytosine annotations need to be converted?
+    # Output the number of lines written
     annotations_count = count_lines(output_file)
-    print(f"    Total lines written to {output_file}: {annotations_count}")
-
-
-
-
-
-
-
+    print(f"Total lines written to {output_file}: {annotations_count}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
 
-    # Parser for extracting annotations
-    parser_extract = subparsers.add_parser('extract_annotations', help='extract cytosine annotations from a graph')
-    parser_extract.add_argument('input', type=str, help='input GFA file')
-    parser_extract.add_argument('output', type=str, help='output annotations file')
-    parser_extract.set_defaults(func=extract_cytosine_annotations)
-
     # Parser for extracting segments
     parser_segments = subparsers.add_parser('extract_segments', help='extract segment lines from a graph')
     parser_segments.add_argument('input', type=str, help='input GFA file')
     parser_segments.set_defaults(func=extract_segments)
+
+    # Parser for extracting annotations
+    parser_extract = subparsers.add_parser('extract_annotations', help='extract cytosine annotations from a graph')
+    parser_extract.add_argument('input', type=str, help='input GFA Segments file')
+    parser_extract.add_argument('output', type=str, help='output annotations file')
+    parser_extract.set_defaults(func=extract_cytosine_annotations)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
