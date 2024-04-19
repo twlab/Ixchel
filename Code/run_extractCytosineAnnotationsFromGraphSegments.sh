@@ -5,7 +5,6 @@
 
 
 echo "Loading software..."
-
 eval $( spack load --sh python@3 )
 eval $( spack load --sh py-numpy/i7mcgz4 )
 
