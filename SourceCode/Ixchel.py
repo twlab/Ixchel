@@ -53,6 +53,15 @@ def extract_cytosine_annotations(args):
                     entry = generate_entry_cytosine_reverse(segment_id, pos)
                     f_out.write("\t".join(map(str, entry)) + "\n")
 
+    # use system commands to report some statistics
+    ## How many segments are there?
+    system_command = f"grep -c 'S' {input_file}"
+    print(f"Number of Segments: {system_command}")
+
+    ## How many Cytosine annotations need to be converted?
+    system_command = f"grep -c 'C' {output_file}"
+    print(f"Number of Cytosine annotations: {system_command}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
