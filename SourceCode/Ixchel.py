@@ -188,7 +188,6 @@ def create_link_search_keys(refsegmentsfile):
     print(f"Creating search keys from {refsegmentsfile}")
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
-            print(line)
             if line.startswith('S'):  # To mimic 'S\t"$2"\t' -> We take lines starting with 'S', THIS IS INEFFICIENT!!! REMOVE THIS
                 parts = line.split('\t')
                 if len(parts) > 1:
