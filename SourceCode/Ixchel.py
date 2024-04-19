@@ -207,7 +207,7 @@ def filter_links(args):
     create_link_search_keys(refsegmentsfile)
     search_keys_file = "temp_link_search_keys.txt"
     with open(search_keys_file, 'r') as keys_file:
-        keys = set(line.strip() for line in keys_file)  # Read all keys into a set
+        keys = set(line.strip() + "\t" for line in keys_file)  # Read all keys into a set
 
     print(f"Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
