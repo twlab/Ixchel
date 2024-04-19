@@ -96,7 +96,17 @@ mv Split.C.Annotations.GRCh38-f1g-90-mc-aug11_* SplitAnnotations/
 
 ### Converting split cytosine positions
 # Make params file
-paste <(find SplitAnnotations/ -type f) <(find SplitAnnotations/ -type f | awk -F "_" '{print "RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print $0"_converted.methylC"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "False"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl"}') <(find SplitAnnotations/ -type f | awk -F "_" '{print "DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl"}') >ConvertSplitFiles_Params.txt
+paste \
+<(find SplitAnnotations/ -type f) \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "QueryOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print $0"_converted.methylC"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "False"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "GRCh38-f1g-90-mc-aug11.UpstreamArray.pkl"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "GRCh38-f1g-90-mc-aug11.DownstreamArray.pkl"}') \
+<(find SplitAnnotations/ -type f | awk -F "_" '{print "DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl"}') \
+>ConvertSplitFiles_Params.txt
 
 # how many jobs?
 wc -l ConvertSplitFiles_Params.txt

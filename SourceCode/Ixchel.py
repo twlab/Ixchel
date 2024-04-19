@@ -7,7 +7,7 @@ import numpy as np
 import jsonpickle
 import dill
 import subprocess
-
+import re  # Importing the regular expressions library for pattern matching
 
 # Define function to generate entry for each cytosine position with "+" sense
 def generate_entry_cytosine(segment_id, position):
@@ -70,6 +70,26 @@ def extract_cytosine_annotations(args):
     print(f"    Number of annotations in {output_file}: {annotations_count}")
 
 
+# New function to split segments into reference and query only files
+def split_segments(args):
+    input_file = args.input
+    ref_name = args.reference_name if args.reference_name else "GRCh38"
+    ref_output = f"RefOnly.{input_file}"
+    query_output = f"QueryOnly.{input_file}"
+
+    ref_pattern = re.compile(rf"SN:Z:{ref_name}\.\w+")
+
+    with open(input_file, 'r') as f, open(ref_output, 'w') as ref_out, open(query_output, 'w') as query_out:
+        for line in f:
+            if ref_pattern.search(line):
+                ref_out.write(line)
+            else:
+                query_out.write(line)
+
+    print(f"Reference lines written to {ref_output}: {count_lines(ref_output)}")
+    print(f"Query lines written to {query_output}: {count_lines(query_output)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
@@ -82,8 +102,13 @@ def main():
     # Parser for extracting annotations
     parser_extract = subparsers.add_parser('extract_annotations', help='extract cytosine annotations from a graph')
     parser_extract.add_argument('input', type=str, help='input GFA Segments file')
-    #parser_extract.add_argument('output', type=str, help='output annotations file')
     parser_extract.set_defaults(func=extract_cytosine_annotations)
+
+    # Parser for splitting segments into RefOnly and QueryOnly
+    parser_split = subparsers.add_parser('split_segments', help='split segments into RefOnly and QueryOnly files based on reference name')
+    parser_split.add_argument('input', type=str, help='input Segments file')
+    parser_split.add_argument('--reference_name', type=str, help='reference name to filter by, default is GRCh38', default='GRCh38')
+    parser_split.set_defaults(func=split_segments)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
