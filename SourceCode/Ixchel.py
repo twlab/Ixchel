@@ -260,7 +260,6 @@ def main():
 
 
     args = parser.parse_args()
-    print(args)
     if not hasattr(args, 'func'):
         parser.print_help()
         sys.exit(1)
