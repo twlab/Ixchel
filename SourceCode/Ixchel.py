@@ -60,11 +60,16 @@ def extract_cytosine_annotations(args):
     # use system commands to report some statistics
     ## How many segments are there?
     segments_count = count_lines(input_file)
-    print(f"Total segments lines written to {input_file}: {segments_count}")
+    print(f"\n  Total segments lines written to {input_file}: {segments_count}")
 
     ## How many Cytosine annotations need to be converted?
     annotations_count = count_lines(output_file)
-    print(f"Total lines written to {output_file}: {annotations_count}")
+    print(f"    Total lines written to {output_file}: {annotations_count}")
+
+
+
+
+
 
 
 
