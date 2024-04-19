@@ -203,7 +203,7 @@ def filter_links(search_keys_file, source_file, output_file):
     with open(source_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
             # Construct the search term in the same format as keys are stored
-            search_term = f"L\t{line.split('\t')[1]}\t"
+            search_term = "L\t" + line.split('\t')[1] + "\t"
             if search_term in keys:
                 outfile.write(line)  # Write to output if the search term is found in keys
 
