@@ -376,9 +376,6 @@ def split_annotations_file(args):
 def precompute_conversion(args):
     print("Precomputing conversion of: " + args.AnnotationFile + " to " + args.AnnotationFile + ".converted")
 
-    def rec_dd():
-        return defaultdict(rec_dd)
-
     ref_dict = {}
     query_dict = {}
     link_dict = {}
