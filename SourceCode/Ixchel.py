@@ -342,8 +342,9 @@ def makeLinkArrayPickles(args):
 def split_annotations_file(args):
     print("Splitting annotations file")
     input_file = args.input
+    os.mkdir("split_annotations")
     base = os.path.splitext(input_file)[0]  # Removes the current extension
-    output_prefix = base + "_"
+    output_prefix = "split_annotations/" + base + "_"
     lines_per_chunk = args.lines_per_chunk
     print(f"... Input file: {input_file}")
     print(f"... Output prefix: {output_prefix}")
@@ -384,8 +385,7 @@ def precompute_conversion(args):
     ReferenceSegmentsPickle = args.ReferenceSegmentsPickle
     QuerySegmentsPickle = args.QuerySegmentsPickle
     LinksPickle = args.LinksPickle
-    os.mkdir("split_annotations")
-    OutputFile = "split_annotations/" + AnnotationFile + ".converted"
+    OutputFile = AnnotationFile + ".converted"
     RefOnlyParam = args.RefOnlyParam
     UpstreamOutputFile = args.UpstreamOutputFile
     DownstreamOutputFile = args.DownstreamOutputFile
