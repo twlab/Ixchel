@@ -251,7 +251,7 @@ def makeAnchorLinkHashPickle(args):
                 bed_dict[QUERYSEGMENTID]["QueryStrand"] = QUERYSTRAND
                 bed_dict[QUERYSEGMENTID]["Tag"] = TAG
             else:
-                # First position for read
+                # First position for segment
                 bed_dict[QUERYSEGMENTID]["RefSegmentID"] = REFSEGMENTID
                 bed_dict[QUERYSEGMENTID]["RefStrand"] = REFSTRAND
                 bed_dict[QUERYSEGMENTID]["QueryStrand"] = QUERYSTRAND
@@ -315,7 +315,7 @@ def main():
 
     # Parser for making an anchor link hash pickle
     parser_pickle = subparsers.add_parser('makeAnchorLinkHashPickle', help='make an anchor link hash pickle')
-    parser_pickle.add_argument('input', type=str, help='Links file to serialize')
+    parser_pickle.add_argument('input', type=str, help='Filtered reference as source links file to serialize')
     parser_pickle.set_defaults(func=makeAnchorLinkHashPickle)
 
     args = parser.parse_args()
