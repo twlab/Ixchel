@@ -189,7 +189,7 @@ def create_link_search_keys(refsegmentsfile):
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
             print(line)
-            if line.startswith('L'):  # To mimic 'L\t"$2"\t' -> We take lines starting with 'L'
+            if line.startswith('S'):  # To mimic 'S\t"$2"\t' -> We take lines starting with 'S', THIS IS INEFFICIENT!!! REMOVE THIS
                 parts = line.split('\t')
                 if len(parts) > 1:
                     key = f"L\t{parts[1]}\t\n"  # Construct the key as per the awk command
