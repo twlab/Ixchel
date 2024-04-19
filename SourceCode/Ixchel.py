@@ -102,7 +102,6 @@ def makeRefSegmentHashPickle(args):
     INPUTFILE = args.input
     base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
     OUTPUTFILE = f"{base}.pkl"
-    #print(OUTPUTFILE)
 
     print("Input file: ")
     print(INPUTFILE)
@@ -134,6 +133,47 @@ def makeRefSegmentHashPickle(args):
     pickle.dump(bed_dict, f)
     f.close()
 
+def makeQuerySegmentHashPickle(args):
+    bed_dict = rec_dd()
+
+    print("Making query segment hash pickle")
+    INPUTFILE = args.input
+    base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
+    OUTPUTFILE = f"{base}.pkl"
+
+    print("Input file: ")
+    print(INPUTFILE)
+
+    with open(INPUTFILE) as f:
+        for line in f:
+            L = line.strip().split()
+            SEGMENTID = L[1]
+            SEQUENCELENGTH = len(L[2])
+            STABLESOURCE = ""
+            STABLEOFFSET = ""
+            # STABLESOURCE = L[3].split(":")[2]
+            # STABLEOFFSET = L[4].split(":")[2]
+
+            if bed_dict[SEGMENTID]["SegmentLength"]:
+                # Not first entry for segment
+                print("ERROR 1")
+                print(bed_dict[SEGMENTID]["SegmentLength"])
+            else:
+                # First postion for read
+                bed_dict[SEGMENTID]["StableSource"] = STABLESOURCE
+                bed_dict[SEGMENTID]["SegmentLength"] = SEQUENCELENGTH
+                bed_dict[SEGMENTID]["StableOffset"] = STABLEOFFSET
+
+    # Save nested dictionary as pickle file
+    print("Saving to: ")
+    print(OUTPUTFILE)
+
+    f = open(OUTPUTFILE, "wb")
+    pickle.dump(bed_dict, f)
+    f.close()
+
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
@@ -158,6 +198,11 @@ def main():
     parser_pickle = subparsers.add_parser('makeRefSegmentHashPickle', help='make a reference segment hash pickle')
     parser_pickle.add_argument('input', type=str, help='Segments file to serialize')
     parser_pickle.set_defaults(func=makeRefSegmentHashPickle)
+
+    # Parser for making a query segment hash pickle
+    parser_pickle = subparsers.add_parser('makeQuerySegmentHashPickle', help='make a query segment hash pickle')
+    parser_pickle.add_argument('input', type=str, help='Segments file to serialize')
+    parser_pickle.set_defaults(func=makeQuerySegmentHashPickle)
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
