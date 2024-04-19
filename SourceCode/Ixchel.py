@@ -96,7 +96,16 @@ def extract_cytosine_annotations(args):
     f.close()
 
 
+# Function to extract segment lines and save them to a new file
+def extract_segments(args):
+    input_file = args.input
+    output_file = f"Segments.{input_file}"
 
+    print(f"Extracting segments from {input_file} to {output_file}")
+    with open(input_file, 'r') as f, open(output_file, 'w') as f_out:
+        for line in f:
+            if line.startswith('S'):
+                f_out.write(line)
 
 
 def main():
