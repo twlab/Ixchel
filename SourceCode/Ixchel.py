@@ -211,12 +211,12 @@ def filter_links(args):
 
     print(f"Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
+        print(keys)
         for line in infile:
             # Construct the search term in the same format as keys are stored
             search_term = "L\t" + line.split('\t')[1] + "\t"
             print(search_term)
             if search_term in keys:
-                print("Match found")
                 outfile.write(line)  # Write to output if the search term is found in keys
 
 
