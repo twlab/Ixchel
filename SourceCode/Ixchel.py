@@ -258,6 +258,8 @@ def main():
     parser_links.add_argument('refsegmentsfile', type=str, help='Reference segments file to use for filtering links')
     parser_links.set_defaults(func=filter_links)
 
+    print(args)
+
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
