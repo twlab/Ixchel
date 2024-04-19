@@ -373,20 +373,6 @@ def split_annotations_file(args):
     except Exception as e:
         print(f"An error occurred!: {e}")
 
-# Example usage:
-# This should be part of your Python script that handles command-line arguments or similar triggers
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 4:
-        print("Usage: python split_script.py <inputfile> <outputprefix> <linesperchunk>")
-        sys.exit(1)
-
-    inputfile = sys.argv[1]
-    outputprefix = sys.argv[2]
-    linesperchunk = int(sys.argv[3])
-
-    split_file(inputfile, outputprefix, linesperchunk)
-
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
