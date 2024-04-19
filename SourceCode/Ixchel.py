@@ -270,10 +270,17 @@ def makeAnchorLinkHashPickle(args):
     f.close()
 
 def makeLinkArrayPickles(args):
+    print("Making link array pickles")
     ReferenceSegmentsPickle = args.ReferenceSegmentsPickle
     LinksPickle = args.FilteredLinksPickle
-    UpstreamOutputFile = args.UpstreamOutputFile
-    DownstreamOutputFile = args.DownstreamOutputFile
+    UpstreamOutputFile = "UpstreamArray." + ReferenceSegmentsPickle
+    DownstreamOutputFile = "DownstreamArray." + ReferenceSegmentsPickle
+    print("... Input files:")
+    print(ReferenceSegmentsPickle)
+    print(LinksPickle)
+    print("... Output files:")
+    print(UpstreamOutputFile)
+    print(DownstreamOutputFile)
 
     ref_dict = {}
     link_dict = {}
@@ -383,8 +390,8 @@ def main():
     parser_pickle = subparsers.add_parser('makeLinkArrayPickles', help='make link array pickles')
     parser_pickle.add_argument('ReferenceSegmentsPickle', type=str, help='Reference segments pickle file')
     parser_pickle.add_argument('FilteredLinksPickle', type=str, help='Filtered links pickle file')
-    parser_pickle.add_argument('UpstreamOutputFile', type=str, help='Upstream output file')
-    parser_pickle.add_argument('DownstreamOutputFile', type=str, help='Downstream output file')
+    #parser_pickle.add_argument('UpstreamOutputFile', type=str, help='Upstream output file')
+    #parser_pickle.add_argument('DownstreamOutputFile', type=str, help='Downstream output file')
     parser_pickle.set_defaults(func=makeLinkArrayPickles)
 
 
