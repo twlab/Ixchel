@@ -208,13 +208,13 @@ def filter_links(args):
     search_keys_file = "temp_link_search_keys.txt"
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
-        print(keys)
 
     print(f"Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in infile:
             # Construct the search term in the same format as keys are stored
             search_term = "L\t" + line.split('\t')[1] + "\t"
+            print(search_term)
             if search_term in keys:
                 outfile.write(line)  # Write to output if the search term is found in keys
 
