@@ -197,9 +197,9 @@ def create_link_search_keys(refsegments_file):
         for key in sorted(seen):  # Sort the set before writing
             outfile.write(key)
 
-def filter_links(input_file, refsegments_file):
+def filter_links(input_file, refsegmentsfile):
     output_file = f"FilteredLinks.{input_file}"
-    create_link_search_keys(refsegments_file)
+    create_link_search_keys(refsegmentsfile)
     search_keys_file = "temp_link_search_keys.txt"
     with open(search_keys_file, 'r') as keys_file:
         keys = set(line.strip() for line in keys_file)  # Read all keys into a set
@@ -250,7 +250,7 @@ def main():
     # Parser for creating RefSourceLinks, make link search keys, then use them to filter all links
     parser_links = subparsers.add_parser('filter_links', help='Filter links to set where the source is a reference segment')
     parser_links.add_argument('input', type=str, help='Links file to filter')
-    parser_links.add_argument('refsegments_file', type=str, help='Reference segments file to use for filtering links')
+    parser_links.add_argument('refsegmentsfile', type=str, help='Reference segments file to use for filtering links')
     parser_links.set_defaults(func=filter_links)
 
 
