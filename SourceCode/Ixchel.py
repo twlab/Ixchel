@@ -704,7 +704,7 @@ def SerializePrecomputedPositionsHash(args):
     PickleFile.close()
 
 # Post graph file prep cleanup to remove all intermediate files. Just leaving the serialized precomputed conversion file
-def postpretcleanup(args):
+def postprepcleanup(args):
     print("Cleaning up intermediate files")
     gfafile = args.input
     base = os.path.splitext(gfafile)[0]  # Removes the current extension
@@ -732,7 +732,6 @@ def postpretcleanup(args):
     print(f"RefOnly.Segments.{base}.pkl")
     print(f"Segments.{base}")
     print(f"UpstreamArray.RefSegmentHash.Segments.{base}.pkl")
-
 
 
 
@@ -811,6 +810,13 @@ def main():
     parser_pickle = subparsers.add_parser('SerializePrecomputedPositionsHash', help='serialize precomputed positions hash')
     parser_pickle.add_argument('precomputedfile', type=str, help='Precomputed positions file to serialize')
     parser_pickle.set_defaults(func=SerializePrecomputedPositionsHash)
+
+    # Parser for post prep cleanup
+    parser_cleanup = subparsers.add_parser('postprepcleanup', help='post prep cleanup')
+    parser_cleanup.add_argument('input', type=str, help='GFA file to clean up')
+    parser_cleanup.set_defaults(func=postprepcleanup)
+
+
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
