@@ -744,6 +744,23 @@ def postprepcleanup(args):
     os.remove(f"UpstreamArray.RefOnly.Segments.{base}.pkl")
     print("... Complete!")
 
+def prepareGraphFiles(args):
+    gfafile = args.input
+    print(gfafile)
+    ### Extract Segments
+    ### Extract Annotations
+    ### Split Segments
+    ### Serialize Query Segments
+    ### Serialize Reference Segments
+    ### Extract Links
+    ### Filter Links
+    ### Serialize Anchor Links
+    ### Make up and down stream links
+    ### Split Annotations
+    ### Precompute conversions - all
+    ### build and serialize precomputed conversion dictionary
+    ### Post prep clean up function
+    ### concatenate logs
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
