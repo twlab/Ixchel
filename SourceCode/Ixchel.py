@@ -703,6 +703,39 @@ def SerializePrecomputedPositionsHash(args):
         pickle.dump(ConversionDictionary, PickleFile, protocol=pickle.HIGHEST_PROTOCOL)
     PickleFile.close()
 
+# Post graph file prep cleanup to remove all intermediate files. Just leaving the serialized precomputed conversion file
+def postpretcleanup(args):
+    print("Cleaning up intermediate files")
+    gfafile = args.input
+    base = os.path.splitext(gfafile)[0]  # Removes the current extension
+    # Move the precomputed conversion file to a new directory named "precomputed".
+    # They are in the split_annotations/ directory
+    # follows naming Annotations.Segments.{gfafile}__{split counter}.pkl
+    # The split counter is variable length, so we need to use a wildcard
+    if not os.path.exists("precomputed"):
+        os.mkdir("precomputed")
+    precomputed_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.pkl")
+    for file in precomputed_files:
+        print(file)
+        #shutil.move(file, "precomputed")
+
+    # Remove intermediate files
+    print(f"Annotations.Segments.{base}")
+    print(f"DoublyAnchored.FilteredLinks.Links.{base}")
+    print(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
+    print(f"FilteredLinks.Links.{base}")
+    print(f"FilteredLinks.Links.{base}.pkl")
+    print(f"Links.{base}")
+    print(f"QueryOnly.Segments.{base}")
+    print(f"QueryOnly.Segments.{base}.pkl")
+    print(f"RefOnly.Segments.{base}")
+    print(f"RefOnly.Segments.{base}.pkl")
+    print(f"Segments.{base}")
+    print(f"UpstreamArray.RefSegmentHash.Segments.{base}.pkl")
+
+
+
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
