@@ -715,7 +715,7 @@ def postprepcleanup(args):
 
     # Remove raw converted files
     precomputed_raw_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.converted")
-    for file in precomputed_files:
+    for file in precomputed_raw_files:
         os.remove(file)
 
     # Move the precomputed conversion file to a new directory named "precomputed".
