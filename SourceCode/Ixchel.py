@@ -812,7 +812,7 @@ def main():
     parser_pickle.set_defaults(func=SerializePrecomputedPositionsHash)
 
     # Parser for post prep cleanup
-    parser_cleanup = subparsers.add_parser('postprepcleanup', help='post prep cleanup')
+    parser_cleanup = subparsers.add_parser('post_prep_cleanup', help='post prep cleanup')
     parser_cleanup.add_argument('input', type=str, help='GFA file to clean up')
     parser_cleanup.set_defaults(func=postprepcleanup)
 
