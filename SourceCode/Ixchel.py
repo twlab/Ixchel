@@ -723,7 +723,7 @@ def postprepcleanup(args):
     print(f"Annotations.Segments.{base}.gfa")
     print(f"DoublyAnchored.FilteredLinks.Links.{base}.pkl")
     print(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
-    print(f"FilteredLinks.Links.{base}")
+    print(f"FilteredLinks.Links.{base}.gfa")
     print(f"FilteredLinks.Links.{base}.pkl")
     print(f"Links.{base}.gfa")
     print(f"QueryOnly.Segments.{base}.gfa")
