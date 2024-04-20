@@ -659,10 +659,8 @@ def precompute_conversion(args):
             FLAG = True
 
         # This section will compute conversionCode using the convertFlag function
-        CONVERSIONCODE = convertFlagsToFlagCode(REFCHECK, ANCHORCHECK, LENGTHCHECK, SYNTENICLENGTHCHECK,
-                                                DOUBLEANCHORTEST, QUERYCHECK, FLAG)
-        return ([STABLESOURCE, START, STOP, CONTEXT, METHYLATEDFRACTION, SENSE, COVERAGE, CONVERSIONCODE, SEGMENTID,
-                 SEGMENTOFFSET])
+        CONVERSIONCODE = convertFlagsToFlagCode(REFCHECK, ANCHORCHECK, LENGTHCHECK, SYNTENICLENGTHCHECK, DOUBLEANCHORTEST, QUERYCHECK, FLAG)
+        return ([STABLESOURCE, START, STOP, CONTEXT, METHYLATEDFRACTION, SENSE, COVERAGE, CONVERSIONCODE, SEGMENTID, SEGMENTOFFSET])
 
     ### This section will open GraphMethyl file
     # if the RefOnlyParam is set to True, then the line will be processed through pullRefOnlyCoords
