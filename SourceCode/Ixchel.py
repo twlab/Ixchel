@@ -722,18 +722,18 @@ def postprepcleanup(args):
         shutil.move(file, "precomputed")
 
     # Remove intermediate files
-    print(f"Annotations.Segments.{base}.gfa")
-    print(f"DoublyAnchored.FilteredLinks.Links.{base}.pkl")
-    print(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
-    print(f"FilteredLinks.Links.{base}.gfa")
-    print(f"FilteredLinks.Links.{base}.pkl")
-    print(f"Links.{base}.gfa")
-    print(f"QueryOnly.Segments.{base}.gfa")
-    print(f"QueryOnly.Segments.{base}.pkl")
-    print(f"RefOnly.Segments.{base}.gfa")
-    print(f"RefOnly.Segments.{base}.pkl")
-    print(f"Segments.{base}.gfa")
-    print(f"UpstreamArray.RefSegmentHash.Segments.{base}.pkl")
+    os.remove(f"Annotations.Segments.{base}.gfa")
+    os.remove(f"DoublyAnchored.FilteredLinks.Links.{base}.pkl")
+    os.remove(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
+    os.remove(f"FilteredLinks.Links.{base}.gfa")
+    os.remove(f"FilteredLinks.Links.{base}.pkl")
+    os.remove(f"Links.{base}.gfa")
+    os.remove(f"QueryOnly.Segments.{base}.gfa")
+    os.remove(f"QueryOnly.Segments.{base}.pkl")
+    os.remove(f"RefOnly.Segments.{base}.gfa")
+    os.remove(f"RefOnly.Segments.{base}.pkl")
+    os.remove(f"Segments.{base}.gfa")
+    os.remove(f"UpstreamArray.RefSegmentHash.Segments.{base}.pkl")
 
 
 
