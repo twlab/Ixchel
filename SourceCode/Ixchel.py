@@ -724,7 +724,7 @@ def postprepcleanup(args):
     # Remove intermediate files
     os.remove(f"Annotations.Segments.{base}.gfa")
     os.remove(f"DoubleAnchored.FilteredLinks.Links.{base}.pkl")
-    os.remove(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
+    os.remove(f"DownstreamArray.RefOnly.Segments.{base}.pkl")
     os.remove(f"FilteredLinks.Links.{base}.gfa")
     os.remove(f"FilteredLinks.Links.{base}.pkl")
     os.remove(f"Links.{base}.gfa")
@@ -733,7 +733,7 @@ def postprepcleanup(args):
     os.remove(f"RefOnly.Segments.{base}.gfa")
     os.remove(f"RefOnly.Segments.{base}.pkl")
     os.remove(f"Segments.{base}.gfa")
-    os.remove(f"UpstreamArray.RefSegmentHash.Segments.{base}.pkl")
+    os.remove(f"UpstreamArray.RefOnly.Segments.{base}.pkl")
 
 
 
