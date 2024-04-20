@@ -506,6 +506,7 @@ def precompute_conversion(args):
             LENGTHTEST = False
             FLAG = True
 
+        print(link_dict)
         # Test if segment has an anchor, which is a segment preceding the current one that is a reference segment
         ANCHORTEST = link_dict[SEGMENTID]
 
