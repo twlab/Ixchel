@@ -257,7 +257,7 @@ def makeAnchorLinkHashPickle(args):
 
     # Save nested dictionary as pickle file
     print("... Saving to:" + OUTPUTFILE)
-    print(bed_dict)
+
     f = open(OUTPUTFILE, "wb")
     pickle.dump(bed_dict, f)
     f.close()
@@ -407,8 +407,6 @@ def precompute_conversion(args):
         link_dict = pickle.load(f)
     f.close()
 
-    print(link_dict)
-
     print("... Adding double anchor segments")
     with open(DoubleAnchorFile, 'rb') as f:
         doubleanchor_dict = pickle.load(f)
@@ -507,7 +505,6 @@ def precompute_conversion(args):
             DOUBLEANCHORTEST = False
             LENGTHTEST = False
             FLAG = True
-
 
         # Test if segment has an anchor, which is a segment preceding the current one that is a reference segment
         ANCHORTEST = link_dict[SEGMENTID]
@@ -662,8 +659,6 @@ def precompute_conversion(args):
             FLAG = True
 
         # This section will compute conversionCode using the convertFlag function
-        print(L)
-        print((REFCHECK, ANCHORCHECK, LENGTHCHECK, SYNTENICLENGTHCHECK, DOUBLEANCHORTEST, QUERYCHECK, FLAG))
         CONVERSIONCODE = convertFlagsToFlagCode(REFCHECK, ANCHORCHECK, LENGTHCHECK, SYNTENICLENGTHCHECK, DOUBLEANCHORTEST, QUERYCHECK, FLAG)
         return ([STABLESOURCE, START, STOP, CONTEXT, METHYLATEDFRACTION, SENSE, COVERAGE, CONVERSIONCODE, SEGMENTID, SEGMENTOFFSET])
 
