@@ -720,17 +720,17 @@ def postprepcleanup(args):
         #shutil.move(file, "precomputed")
 
     # Remove intermediate files
-    print(f"Annotations.Segments.{base}")
-    print(f"DoublyAnchored.FilteredLinks.Links.{base}")
+    print(f"Annotations.Segments.{base}.gfa")
+    print(f"DoublyAnchored.FilteredLinks.Links.{base}.pkl")
     print(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
     print(f"FilteredLinks.Links.{base}")
     print(f"FilteredLinks.Links.{base}.pkl")
-    print(f"Links.{base}")
-    print(f"QueryOnly.Segments.{base}")
+    print(f"Links.{base}.gfa")
+    print(f"QueryOnly.Segments.{base}.gfa")
     print(f"QueryOnly.Segments.{base}.pkl")
-    print(f"RefOnly.Segments.{base}")
+    print(f"RefOnly.Segments.{base}.gfa")
     print(f"RefOnly.Segments.{base}.pkl")
-    print(f"Segments.{base}")
+    print(f"Segments.{base}.gfa")
     print(f"UpstreamArray.RefSegmentHash.Segments.{base}.pkl")
 
 
