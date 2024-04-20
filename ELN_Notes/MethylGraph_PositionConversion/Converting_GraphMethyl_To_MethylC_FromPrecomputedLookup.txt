@@ -129,7 +129,11 @@ mkdir SplitInputFiles
 # The third column is the name of the output split .graph.methyl files in the SplitInputFiles/ directory
 # Use the find and paste commands to generate this file
 
-paste <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "CG.graph.methyl.sorted"}') <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "SplitInputFiles/"$5"__CG.graph.methyl.sorted"}') >CG.graph.methyl_SPLITTING.parameters
+paste \
+<(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "CG.graph.methyl.sorted"}') \
+<(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*") \
+<(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -name "converted.methylC_sorted_Keys_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_*" | awk -F "/" '{print "SplitInputFiles/"$5"__CG.graph.methyl.sorted"}') \
+>CG.graph.methyl_SPLITTING.parameters
 
 # how many job are there?
 cat CG.graph.methyl_SPLITTING.parameters | wc -l
