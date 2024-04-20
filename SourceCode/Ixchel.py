@@ -718,7 +718,7 @@ def postprepcleanup(args):
     precomputed_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.pkl")
     for file in precomputed_files:
         print(file)
-        #shutil.move(file, "precomputed")
+        shutil.move(file, "precomputed")
 
     # Remove intermediate files
     print(f"Annotations.Segments.{base}.gfa")
