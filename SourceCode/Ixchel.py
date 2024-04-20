@@ -714,9 +714,9 @@ def postprepcleanup(args):
     # The split counter is variable length, so we need to use a wildcard
     if not os.path.exists("precomputed"):
         os.mkdir("precomputed")
-    precomputed_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.pkl")
-    for file in precomputed_files:
-        print(file)
+    #precomputed_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.pkl")
+    #for file in precomputed_files:
+    #    print(file)
         #shutil.move(file, "precomputed")
 
     # Remove intermediate files
