@@ -257,7 +257,7 @@ def makeAnchorLinkHashPickle(args):
 
     # Save nested dictionary as pickle file
     print("... Saving to:" + OUTPUTFILE)
-
+    print(bed_dict)
     f = open(OUTPUTFILE, "wb")
     pickle.dump(bed_dict, f)
     f.close()
