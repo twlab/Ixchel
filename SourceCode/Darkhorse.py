@@ -6,6 +6,7 @@ def parse_gfa(filepath):
     Parse the GFA file to extract segments and metadata.
     This function extracts segment information including IDs, sequences, and
     reference start positions while considering orientation from GFA formatted text.
+    Handles cases where metadata may be incomplete or malformed.
     """
     segments = {}
     with open(filepath, 'r') as file:
@@ -14,11 +15,18 @@ def parse_gfa(filepath):
             if parts[0] == 'S':  # This identifies a segment line
                 segment_id = parts[1]
                 sequence = parts[2]
-                additional_info = {part.split(':')[0]: part.split(':')[-1] for part in parts[3:]}
-                ref_start = int(additional_info['SO'][2:]) if 'SO' in additional_info else None
+                additional_info = {part.split(':')[0]: part.split(':')[-1] for part in parts[3:] if ':' in part}
+                ref_start = None
+                if 'SO' in additional_info:
+                    try:
+                        ref_start = int(additional_info['SO'][2:])  # Correctly handle the integer conversion
+                    except ValueError:
+                        print(f"Warning: Invalid reference start position for segment {segment_id}")
+
                 orientation = '+'  # Default orientation
-                if 'SR' in additional_info and int(additional_info['SR']) == 1:
+                if 'SR' in additional_info and additional_info['SR'] == '1':
                     orientation = '-'  # Reverse orientation if specified
+
                 segments[segment_id] = {
                     'sequence': sequence,
                     'ref_start': ref_start,
