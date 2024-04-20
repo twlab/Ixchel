@@ -11,6 +11,7 @@ import subprocess
 import re  # Importing the regular expressions library for pattern matching
 import os
 import glob
+import shutil
 
 # Nested dictionary function
 def rec_dd():
