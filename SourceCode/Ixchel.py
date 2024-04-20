@@ -704,12 +704,20 @@ def SerializePrecomputedPositionsHash(args):
     with open(OUTPUTPICKLEFILE, 'wb') as PickleFile:
         pickle.dump(ConversionDictionary, PickleFile, protocol=pickle.HIGHEST_PROTOCOL)
     PickleFile.close()
+    print("... Complete!")
+
 
 # Post graph file prep cleanup to remove all intermediate files. Just leaving the serialized precomputed conversion file
 def postprepcleanup(args):
     print("Cleaning up intermediate files")
     gfafile = args.input
     base = os.path.splitext(gfafile)[0]  # Removes the current extension
+
+    # Remove raw converted files
+    precomputed_raw_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.converted")
+    for file in precomputed_files:
+        os.remove(file)
+
     # Move the precomputed conversion file to a new directory named "precomputed".
     # They are in the split_annotations/ directory
     # follows naming Annotations.Segments.{gfafile}__{split counter}.pkl
@@ -734,8 +742,7 @@ def postprepcleanup(args):
     os.remove(f"RefOnly.Segments.{base}.pkl")
     os.remove(f"Segments.{base}.gfa")
     os.remove(f"UpstreamArray.RefOnly.Segments.{base}.pkl")
-
-
+    print("... Complete!")
 
 
 def main():
