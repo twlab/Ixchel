@@ -718,12 +718,12 @@ def postprepcleanup(args):
         os.mkdir("precomputed")
     precomputed_files = glob.glob(f"split_annotations/Annotations.Segments.{base}__*.pkl")
     for file in precomputed_files:
-        print(file)
+        #print(file)
         shutil.move(file, "precomputed")
 
     # Remove intermediate files
     os.remove(f"Annotations.Segments.{base}.gfa")
-    os.remove(f"DoublyAnchored.FilteredLinks.Links.{base}.pkl")
+    os.remove(f"DoubleAnchored.FilteredLinks.Links.{base}.pkl")
     os.remove(f"DownstreamArray.RefSegmentHash.Segments.{base}.pkl")
     os.remove(f"FilteredLinks.Links.{base}.gfa")
     os.remove(f"FilteredLinks.Links.{base}.pkl")
