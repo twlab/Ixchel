@@ -407,6 +407,8 @@ def precompute_conversion(args):
         link_dict = pickle.load(f)
     f.close()
 
+    print(link_dict)
+
     print("... Adding double anchor segments")
     with open(DoubleAnchorFile, 'rb') as f:
         doubleanchor_dict = pickle.load(f)
@@ -506,7 +508,7 @@ def precompute_conversion(args):
             LENGTHTEST = False
             FLAG = True
 
-        print(link_dict)
+
         # Test if segment has an anchor, which is a segment preceding the current one that is a reference segment
         ANCHORTEST = link_dict[SEGMENTID]
 
