@@ -815,7 +815,8 @@ def prepareGraphFiles(args):
     ### Extract Segments
     extract_segments(args)
     ### Extract Annotations
-    extract_cytosine_annotations(f"Segments.{gfafile}")
+    args.input = f"Segments.{gfafile}"
+    extract_cytosine_annotations(args)
     ### Split Segments
     split_segments(f"Segments.{gfafile}")
     ### Serialize Query Segments
