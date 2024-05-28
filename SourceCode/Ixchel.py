@@ -867,16 +867,16 @@ def prepareGraphFiles(args):
     split_annotations_file(args)
 
     ### Precompute conversions - all
+    gfafileBase = os.path.splitext(gfafile)[0]
     args.AnnotationFile = f"Annotations.Segments.{gfafile}"
-    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafile}"
-    args.QuerySegmentsPickle = f"QueryOnly.Segments.{gfafile}"
-    args.LinksPickle = f"FilteredLinks.Links.{gfafile}"
+    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
+    args.QuerySegmentsPickle = f"QueryOnly.Segments.{gfafileBase}.pkl"
+    args.LinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
     args.RefOnlyParam = "False"
-    args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafile}"
-    args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafile}"
-    args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafile}"
-    print(f"Precomputing conversion from {args.AnnotationFile} to {args.AnnotationFile}.converted")
-    print(f"Using serialized: {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
+    args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
+    args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
+    args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafileBase}.pkl"
+    print(f"Precomputing conversion from {args.AnnotationFile} using {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
     print(f"UpstreamOutputFile: {args.UpstreamOutputFile}")
     print(f"DownstreamOutputFile: {args.DownstreamOutputFile}")
     print(f"DoubleAnchorFile: {args.DoubleAnchorFile}")
