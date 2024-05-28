@@ -973,6 +973,7 @@ def main():
     parser_prepareGraphFiles = subparsers.add_parser('prepareGraphFiles', help='prepare graph files')
     parser_prepareGraphFiles.add_argument('input', type=str, help='GFA file to prepare')
     parser_prepareGraphFiles.add_argument('--reference_name', type=str, help='reference name to filter by, default is GRCh38', default='GRCh38')
+    parser_prepareGraphFiles.add_argument('--lines_per_chunk', type=int, help='number of lines per chunk', default=100000)
     parser_prepareGraphFiles.set_defaults(func=prepareGraphFiles)
 
     # Misc, For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
