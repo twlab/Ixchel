@@ -809,6 +809,36 @@ def convertGraphMethylToGAF(args):
     f_out.close()
     print("... Complete!")
 
+def prepareGraphFiles(args):
+    gfafile = args.input
+    print(gfafile)
+    ### Extract Segments
+    extract_segments(gfafile)
+    ### Extract Annotations
+    extract_cytosine_annotations(f"Segments.{gfafile}")
+    ### Split Segments
+    split_segments(f"Segments.{gfafile}")
+    ### Serialize Query Segments
+    makeQuerySegmentHashPickle(f"QueryOnly.Segments.{gfafile}")
+    ### Serialize Reference Segments
+    makeRefSegmentHashPickle(f"RefOnly.Segments.{gfafile}")
+    ### Extract Links
+    extract_links(gfafile)
+    ### Filter Links
+    filter_links(f"Links.{gfafile}", f"RefOnly.Segments.{gfafile}")
+    ### Serialize Anchor Links
+    makeAnchorLinkHashPickle(f"FilteredLinks.Links.{gfafile}")
+    ### Make up and down stream links
+    makeLinkArrayPickles(f"RefOnly.Segments.{gfafile}", f"FilteredLinks.Links.{gfafile}")
+    ### Split Annotations
+    split_annotations_file(f"Annotations.Segments.{gfafile}")
+    ### Precompute conversions - all
+    precompute_conversion(f"Annotations.Segments.{gfafile}", f"RefOnly.Segments.{gfafile}", f"QueryOnly.Segments.{gfafile}", f"FilteredLinks.Links.{gfafile}", "False", f"UpstreamArray.RefOnly.Segments.{gfafile}", f"DownstreamArray.RefOnly.Segments.{gfafile}", f"DoubleAnchored.FilteredLinks.Links.{gfafile}")
+    ### build and serialize precomputed conversion dictionary
+    SerializePrecomputedPositionsHash(f"UpstreamArray.RefOnly.Segments.{gfafile}")
+    ### Post prep clean up function
+    postprepcleanup(gfafile)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
@@ -890,7 +920,13 @@ def main():
     parser_cleanup.add_argument('input', type=str, help='GFA file to clean up')
     parser_cleanup.set_defaults(func=postprepcleanup)
 
-    # For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
+    # prepareGraphFiles
+    parser_prepareGraphFiles = subparsers.add_parser('prepareGraphFiles', help='prepare graph files')
+    parser_prepareGraphFiles.add_argument('input', type=str, help='GFA file to prepare')
+    parser_prepareGraphFiles.set_defaults(func=prepareGraphFiles)
+
+
+    # Misc, For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
     parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf')
     parser_convertGraphMethylToGAF.add_argument('input', type=str, help='.graph.methyl file to convert')
     parser_convertGraphMethylToGAF.add_argument('gfafile', type=str, help='.gfa file to calculate path lengths')
