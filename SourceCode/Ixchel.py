@@ -812,32 +812,50 @@ def convertGraphMethylToGAF(args):
 def prepareGraphFiles(args):
     gfafile = args.input
     print(gfafile)
+
     ### Extract Segments
+    print(f"Extracting segments from {gfafile}")
     extract_segments(args)
+
     ### Extract Annotations
     args.input = f"{gfafile}"
-    print(args.input)
+    print(f"Extracting annotations from {gfafile}")
     extract_cytosine_annotations(args)
+
     ### Split Segments
+    args.input = f"Segments.{gfafile}"
+    print(f"Splitting segments from {args.input}")
     split_segments(f"Segments.{gfafile}")
+
     ### Serialize Query Segments
-    makeQuerySegmentHashPickle(f"QueryOnly.Segments.{gfafile}")
+    args.input = f"QueryOnly.Segments.{gfafile}"
+    print(f"Serializing Query Segments from {args.input}")
+    makeQuerySegmentHashPickle(args)
+
     ### Serialize Reference Segments
     makeRefSegmentHashPickle(f"RefOnly.Segments.{gfafile}")
+
     ### Extract Links
     extract_links(gfafile)
+
     ### Filter Links
     filter_links(f"Links.{gfafile}", f"RefOnly.Segments.{gfafile}")
+
     ### Serialize Anchor Links
     makeAnchorLinkHashPickle(f"FilteredLinks.Links.{gfafile}")
+
     ### Make up and down stream links
     makeLinkArrayPickles(f"RefOnly.Segments.{gfafile}", f"FilteredLinks.Links.{gfafile}")
+
     ### Split Annotations
     split_annotations_file(f"Annotations.Segments.{gfafile}")
+
     ### Precompute conversions - all
     precompute_conversion(f"Annotations.Segments.{gfafile}", f"RefOnly.Segments.{gfafile}", f"QueryOnly.Segments.{gfafile}", f"FilteredLinks.Links.{gfafile}", "False", f"UpstreamArray.RefOnly.Segments.{gfafile}", f"DownstreamArray.RefOnly.Segments.{gfafile}", f"DoubleAnchored.FilteredLinks.Links.{gfafile}")
+
     ### build and serialize precomputed conversion dictionary
     SerializePrecomputedPositionsHash(f"UpstreamArray.RefOnly.Segments.{gfafile}")
+
     ### Post prep clean up function
     postprepcleanup(gfafile)
 
