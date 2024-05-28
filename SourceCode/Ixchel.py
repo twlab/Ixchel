@@ -854,8 +854,10 @@ def prepareGraphFiles(args):
     makeAnchorLinkHashPickle(args)
 
     ### Make up and down stream links
-    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafile}"
-    args.FilteredLinksPickle = f"FilteredLinks.Links.{gfafile}"
+    #### The file extension for Pickle files is .pkl. So the .gfa ending of the gfafile needs to be replaced with .pkl
+    gfafileBase = os.path.splitext(gfafile)[0]
+    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
+    args.FilteredLinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
     print(f"Making link array pickles from {args.ReferenceSegmentsPickle} and {args.FilteredLinksPickle}")
     makeLinkArrayPickles(args)
 
