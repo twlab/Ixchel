@@ -825,7 +825,7 @@ def prepareGraphFiles(args):
     ### Split Segments
     args.input = f"Segments.{gfafile}"
     print(f"Splitting segments from {args.input}")
-    split_segments(f"Segments.{gfafile}")
+    split_segments(args)
 
     ### Serialize Query Segments
     args.input = f"QueryOnly.Segments.{gfafile}"
