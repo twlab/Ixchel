@@ -745,22 +745,75 @@ def postprepcleanup(args):
     print("... Complete!")
 
 def prepareGraphFiles(args):
+    # Import parameters
+    graphmethylFile = args.input
+    gfafile = args.gfafile
+
+    # Build dictionary of segment lengths using segment name as the key. Segment length meaning the number of nucleotides in the segment.
+    print("Building dictionary of segment lengths")
+    segmentLengths = {}
+    with open(gfafile, 'r') as f:
+        for line in f:
+            if line.startswith('S'):
+                parts = line.split('\t')
+                segmentLengths[parts[1]] = len(parts[2])
+    # Loop through the GraphMethyl file and convert to GAF format.
+    ## The .graph.methyl file is tab-delimited with the following columns:
+    # 1. Segment ID
+    # 2. Segment Offset
+    # 3. Strand
+    # 4. Context
+    # 5. Unmethylated
+    # 6. Methylated
+    # 7. Coverage
+    # 8. Methylated Fraction
+    ## The GAF format is tab-delimited with the following columns:
+    # 1. Composite key of Segment ID, Segment Offset, Strand, Context, Unmethylated, Methylated, Coverage, Methylated Fraction. ":" separated
+    # 2. Annotation length. This is the length of the C, so for CpG it is 1.
+    # 3. Start position of the annotation, here 0.
+    # 4. Stop position of the annotation, here 1.
+    # 5. Strand, here taken from the GraphMethyl file.
+    # 6. Annotation walk, here >{Segment ID} if "+" strand, <{Segment ID} if "-" strand.
+    # 7. Path length, here the length of the segment pulled from the segmentLengths dictionary.
+    # 8. Start position of the path, here the Segment Offset.
+    # 9. Stop position of the path, here the Segment Offset + 1.
+    # 10. Number of residue matches, here 1.
+    # 11. Alignment block length, here 1.
+    # 12. Mapping quality, here 255.
+    print("Converting GraphMethyl file to GAF format")
+    with open(graphmethylFile, 'r') as f, open(f"{graphmethylFile}.gaf", 'w') as f_out:
+        for line in f:
+            L = line.strip().split()
+            segmentID = L[0]
+            segmentOffset = L[1]
+            strand = L[2]
+            context = L[3]
+            unmethylated = L[4]
+            methylated = L[5]
+            coverage = L[6]
+            methylatedFraction = L[7]
+            annotationLength = 1
+            start = 0
+            stop = 1
+            annotationWalk = f">{segmentID}" if strand == "+" else f"<{segmentID}"
+            pathLength = segmentLengths[segmentID]
+            pathStart = segmentOffset
+            pathStop = int(segmentOffset) + 1
+            residueMatches = 1
+            alignmentBlockLength = 1
+            mappingQuality = 255
+            # Write to GAF file
+            f_out.write(f"{segmentID}:{segmentOffset}:{strand}:{context}:{unmethylated}:{methylated}:{coverage}:{methylatedFraction}\t{annotationLength}\t{start}\t{stop}\t{strand}\t{annotationWalk}\t{pathLength}\t{pathStart}\t{pathStop}\t{residueMatches}\t{alignmentBlockLength}\t{mappingQuality}\n")
+    # Close the files
+    f.close()
+    f_out.close()
+    print("... Complete!")
+
+
+def convertGraphMethylToGAF(args):
     gfafile = args.input
     print(gfafile)
-    ### Extract Segments
-    ### Extract Annotations
-    ### Split Segments
-    ### Serialize Query Segments
-    ### Serialize Reference Segments
-    ### Extract Links
-    ### Filter Links
-    ### Serialize Anchor Links
-    ### Make up and down stream links
-    ### Split Annotations
-    ### Precompute conversions - all
-    ### build and serialize precomputed conversion dictionary
-    ### Post prep clean up function
-    ### concatenate logs
+
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
@@ -841,6 +894,14 @@ def main():
     parser_cleanup = subparsers.add_parser('post_prep_cleanup', help='post prep cleanup')
     parser_cleanup.add_argument('input', type=str, help='GFA file to clean up')
     parser_cleanup.set_defaults(func=postprepcleanup)
+
+    # For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
+    parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf')
+    parser_convertGraphMethylToGAF.add_argument('input', type=str, help='.graph.methyl file to convert')
+    parser_convertGraphMethylToGAF.add_argument('gfafile', type=str, help='.gfa file to calculate path lengths')
+    parser_convertGraphMethylToGAF.set_defaults(func=convertGraphMethylToGAF)
+
+
 
 
 
