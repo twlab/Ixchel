@@ -876,6 +876,10 @@ def prepareGraphFiles(args):
     args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafile}"
     args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafile}"
     print(f"Precomputing conversion from {args.AnnotationFile} to {args.AnnotationFile}.converted")
+    print(f"Using serialized: {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
+    print(f"UpstreamOutputFile: {args.UpstreamOutputFile}")
+    print(f"DownstreamOutputFile: {args.DownstreamOutputFile}")
+    print(f"DoubleAnchorFile: {args.DoubleAnchorFile}")
     precompute_conversion(args)
 
     ### build and serialize precomputed conversion dictionary
