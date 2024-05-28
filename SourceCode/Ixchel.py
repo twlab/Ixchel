@@ -833,13 +833,20 @@ def prepareGraphFiles(args):
     makeQuerySegmentHashPickle(args)
 
     ### Serialize Reference Segments
-    makeRefSegmentHashPickle(f"RefOnly.Segments.{gfafile}")
+    args.input = f"RefOnly.Segments.{gfafile}"
+    print(f"Serializing Reference Segments from {args.input}")
+    makeRefSegmentHashPickle(args)
 
     ### Extract Links
-    extract_links(gfafile)
+    args.input = f"{gfafile}"
+    print(f"Extracting links from {gfafile}")
+    extract_links(args)
 
     ### Filter Links
-    filter_links(f"Links.{gfafile}", f"RefOnly.Segments.{gfafile}")
+    args.input = f"Links.{gfafile}"
+    args.refsegmentsfile = f"RefOnly.Segments.{gfafile}"
+    print(f"Filtering links from {args.input} using {args.refsegmentsfile}")
+    filter_links(args)
 
     ### Serialize Anchor Links
     makeAnchorLinkHashPickle(f"FilteredLinks.Links.{gfafile}")
