@@ -795,10 +795,10 @@ def convertGraphMethylToGAF(args):
             annotationLength = 1
             start = 0
             stop = 1
-            annotationWalk = f"{segmentID}" if strand == "+" else f"{segmentID}"
+            annotationWalk = f">{segmentID}" if strand == "+" else f"<{segmentID}"
             pathLength = segmentLengths[segmentID]
-            pathStart = segmentOffset
-            pathStop = int(segmentOffset) + 1
+            pathStart = int(segmentOffset)
+            pathStop = int(segmentOffset)
             residueMatches = 1
             alignmentBlockLength = 1
             mappingQuality = 255
