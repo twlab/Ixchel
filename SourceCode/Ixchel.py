@@ -849,22 +849,42 @@ def prepareGraphFiles(args):
     filter_links(args)
 
     ### Serialize Anchor Links
-    makeAnchorLinkHashPickle(f"FilteredLinks.Links.{gfafile}")
+    args.input = f"FilteredLinks.Links.{gfafile}"
+    print(f"Serializing Anchor Links from {args.input}")
+    makeAnchorLinkHashPickle(args)
 
     ### Make up and down stream links
-    makeLinkArrayPickles(f"RefOnly.Segments.{gfafile}", f"FilteredLinks.Links.{gfafile}")
+    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafile}"
+    args.FilteredLinksPickle = f"FilteredLinks.Links.{gfafile}"
+    print(f"Making link array pickles from {args.ReferenceSegmentsPickle} and {args.FilteredLinksPickle}")
+    makeLinkArrayPickles(args)
 
     ### Split Annotations
-    split_annotations_file(f"Annotations.Segments.{gfafile}")
+    args.input = f"Annotations.Segments.{gfafile}"
+    print(f"Splitting annotations from {args.input}")
+    split_annotations_file(args)
 
     ### Precompute conversions - all
-    precompute_conversion(f"Annotations.Segments.{gfafile}", f"RefOnly.Segments.{gfafile}", f"QueryOnly.Segments.{gfafile}", f"FilteredLinks.Links.{gfafile}", "False", f"UpstreamArray.RefOnly.Segments.{gfafile}", f"DownstreamArray.RefOnly.Segments.{gfafile}", f"DoubleAnchored.FilteredLinks.Links.{gfafile}")
+    args.AnnotationFile = f"Annotations.Segments.{gfafile}"
+    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafile}"
+    args.QuerySegmentsPickle = f"QueryOnly.Segments.{gfafile}"
+    args.LinksPickle = f"FilteredLinks.Links.{gfafile}"
+    args.RefOnlyParam = "False"
+    args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafile}"
+    args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafile}"
+    args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafile}"
+    print(f"Precomputing conversion from {args.AnnotationFile} to {args.AnnotationFile}.converted")
+    precompute_conversion(args)
 
     ### build and serialize precomputed conversion dictionary
-    SerializePrecomputedPositionsHash(f"UpstreamArray.RefOnly.Segments.{gfafile}")
+    args.precomputedfile = f"Annotations.Segments.{gfafile}.converted"
+    print(f"Serializing precomputed conversion dictionary from {args.precomputedfile}")
+    SerializePrecomputedPositionsHash(args)
 
     ### Post prep clean up function
-    postprepcleanup(gfafile)
+    args.input = f"{gfafile}"
+    print(f"Cleaning up intermediate files from {args.input}")
+    postprepcleanup(args)
 
 
 def main():
