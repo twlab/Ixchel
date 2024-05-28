@@ -744,7 +744,7 @@ def postprepcleanup(args):
     os.remove(f"UpstreamArray.RefOnly.Segments.{base}.pkl")
     print("... Complete!")
 
-def prepareGraphFiles(args):
+def convertGraphMethylToGAF(args):
     # Import parameters
     graphmethylFile = args.input
     gfafile = args.gfafile
@@ -808,11 +808,6 @@ def prepareGraphFiles(args):
     f.close()
     f_out.close()
     print("... Complete!")
-
-
-def convertGraphMethylToGAF(args):
-    gfafile = args.input
-    print(gfafile)
 
 
 def main():
