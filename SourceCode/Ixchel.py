@@ -813,7 +813,7 @@ def prepareGraphFiles(args):
     gfafile = args.input
     print(gfafile)
     ### Extract Segments
-    extract_segments(gfafile)
+    extract_segments(args)
     ### Extract Annotations
     extract_cytosine_annotations(f"Segments.{gfafile}")
     ### Split Segments
@@ -924,7 +924,6 @@ def main():
     parser_prepareGraphFiles = subparsers.add_parser('prepareGraphFiles', help='prepare graph files')
     parser_prepareGraphFiles.add_argument('input', type=str, help='GFA file to prepare')
     parser_prepareGraphFiles.set_defaults(func=prepareGraphFiles)
-
 
     # Misc, For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
     parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf')
