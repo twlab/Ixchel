@@ -959,7 +959,7 @@ def convertConversionCodeSingle(args):
     # return flagCode
     # But in reverse. So it will take in a single value and convert it to a string of TRUE or FALSE values.
     # This will be useful for the user to understand what the conversion code means.
-    conversionCode = args.conversionCode
+    conversionCode = args.conversioncode
     isReferenceFlag = False
     hasAnchorFlag = False
     lengthFlag = False
