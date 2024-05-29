@@ -88,7 +88,7 @@ def split_segments(args):
 
     with open(input_file, 'r') as f, open(ref_output, 'w') as ref_out, open(query_output, 'w') as query_out:
         for line in f:
-            print(line)
+            print(f"refsegline: {line}")
             if ref_pattern.search(line):
                 ref_out.write(line)
             else:
