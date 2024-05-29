@@ -102,8 +102,7 @@ def makeRefSegmentHashPickle(args):
     base = os.path.splitext(INPUTFILE)[0]  # Removes the current extension
     OUTPUTFILE = f"{base}.pkl"
 
-    print("... Input file: ")
-    print(INPUTFILE)
+    print(f"... Input file: {INPUTFILE}")
 
     with open(INPUTFILE) as f:
         for line in f:
@@ -278,12 +277,8 @@ def makeLinkArrayPickles(args):
     LinksPickle = args.FilteredLinksPickle
     UpstreamOutputFile = "UpstreamArray." + ReferenceSegmentsPickle
     DownstreamOutputFile = "DownstreamArray." + ReferenceSegmentsPickle
-    print("... Input files:")
-    print(ReferenceSegmentsPickle)
-    print(LinksPickle)
-    print("... Output files:")
-    print(UpstreamOutputFile)
-    print(DownstreamOutputFile)
+    print(f"... Input files: {ReferenceSegmentsPickle} and {LinksPickle}")
+    print(f"... Output files: {UpstreamOutputFile} and {DownstreamOutputFile}")
 
     ref_dict = {}
     link_dict = {}
@@ -380,7 +375,7 @@ def split_annotations_file(args):
 
 
 def precompute_conversion(args):
-    print("Precomputing conversion of: " + args.AnnotationFile + " to " + args.AnnotationFile + ".converted")
+    print("Precomputing conversion to " + args.AnnotationFile + ".converted")
 
     ref_dict = {}
     query_dict = {}
@@ -685,7 +680,7 @@ def precompute_conversion(args):
     print("... Complete!")
 
 def SerializePrecomputedPositionsHash(args):
-    print("Serializing PrecomputedPositionsHash")
+    #print("Serializing PrecomputedPositionsHash")
     INPUTPRECOMPUTEDFILE = args.precomputedfile
     base = os.path.splitext(INPUTPRECOMPUTEDFILE)[0]  # Removes the current extension
     OUTPUTPICKLEFILE = base + ".pkl"
@@ -819,43 +814,43 @@ def prepareGraphFiles(args):
     #print(gfafile)
 
     ### Extract Segments
-    print(f"Extracting segments from {gfafile}")
+    #print(f"Extracting segments from {gfafile}")
     extract_segments(args)
 
     ### Extract Annotations
     args.input = f"{gfafile}"
-    print(f"\nExtracting annotations from {gfafile}")
+    #print(f"\nExtracting annotations from {gfafile}")
     extract_cytosine_annotations(args)
 
     ### Split Segments
     args.input = f"Segments.{gfafile}"
-    print(f"\nSplitting segments from {args.input}")
+    print(f"\nSplitting segments from {args.input}...")
     split_segments(args)
 
     ### Serialize Query Segments
     args.input = f"QueryOnly.Segments.{gfafile}"
-    print(f"\nSerializing Query Segments from {args.input}")
+    print(f"\nSerializing Query Segments from {args.input}...")
     makeQuerySegmentHashPickle(args)
 
     ### Serialize Reference Segments
     args.input = f"RefOnly.Segments.{gfafile}"
-    print(f"\nSerializing Reference Segments from {args.input}")
+    print(f"\nSerializing Reference Segments from {args.input}...")
     makeRefSegmentHashPickle(args)
 
     ### Extract Links
     args.input = f"{gfafile}"
-    print(f"\nExtracting links from {gfafile}")
+    #print(f"\nExtracting links from {gfafile}")
     extract_links(args)
 
     ### Filter Links
     args.input = f"Links.{gfafile}"
     args.refsegmentsfile = f"RefOnly.Segments.{gfafile}"
-    print(f"\nFiltering links from {args.input} using {args.refsegmentsfile}")
+    #print(f"\nFiltering links from {args.input} using {args.refsegmentsfile}")
     filter_links(args)
 
     ### Serialize Anchor Links
     args.input = f"FilteredLinks.Links.{gfafile}"
-    print(f"\nSerializing Anchor Links from {args.input}")
+    print(f"\nSerializing Anchor Links from {args.input}...")
     makeAnchorLinkHashPickle(args)
 
     ### Make up and down stream links
@@ -868,7 +863,7 @@ def prepareGraphFiles(args):
 
     ### Split Annotations
     args.input = f"Annotations.Segments.{gfafile}"
-    print(f"\nSplitting annotations from {args.input}")
+    #print(f"\nSplitting annotations from {args.input}")
     split_annotations_file(args)
 
     ### Precompute conversions - all
