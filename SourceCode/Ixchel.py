@@ -85,15 +85,12 @@ def split_segments(args):
     query_output = f"QueryOnly.{input_file}"
     # Match the reference name in the segment line. Example: SN:Z:GRCh38#0#chr1
     ref_pattern = re.compile(f"SN:Z:{ref_name}#")
-    # ref_pattern = re.compile(rf"SN:Z:{ref_name}\.\w+")
     with open(input_file, 'r') as f, open(ref_output, 'w') as ref_out, open(query_output, 'w') as query_out:
         for line in f:
-            print(f"refsegline: {line}")
             if ref_pattern.search(line):
                 ref_out.write(line)
             else:
                 query_out.write(line)
-
     print(f"Reference lines written to {ref_output}: {count_lines(ref_output)}")
     print(f"Query lines written to {query_output}: {count_lines(query_output)}")
 
@@ -194,7 +191,6 @@ def create_link_search_keys(refsegmentsfile):
         sys.exit(1)
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
-            print(line)
             if line.startswith('S'):  # To mimic 'S\t"$2"\t' -> We take lines starting with 'S', THIS IS INEFFICIENT!!! REMOVE THIS
                 parts = line.split('\t')
                 if len(parts) > 1:
@@ -763,6 +759,9 @@ def convertGraphMethylToGAF(args):
             if line.startswith('S'):
                 parts = line.split('\t')
                 segmentLengths[parts[1]] = len(parts[2])
+
+
+    # The following chunck is in development and should not be used
     # Loop through the GraphMethyl file and convert to GAF format.
     ## The .graph.methyl file is tab-delimited with the following columns:
     # 1. Segment ID
@@ -987,7 +986,7 @@ def main():
     parser_prepareGraphFiles.set_defaults(func=prepareGraphFiles)
 
     # Misc, For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
-    parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf')
+    parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf\nthis is experimental and should not be used')
     parser_convertGraphMethylToGAF.add_argument('input', type=str, help='.graph.methyl file to convert')
     parser_convertGraphMethylToGAF.add_argument('gfafile', type=str, help='.gfa file to calculate path lengths')
     parser_convertGraphMethylToGAF.set_defaults(func=convertGraphMethylToGAF)
