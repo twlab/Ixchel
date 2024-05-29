@@ -191,7 +191,6 @@ def create_link_search_keys(refsegmentsfile):
     if not os.path.exists(refsegmentsfile):
         print(f"Error: {refsegmentsfile} does not exist!")
         sys.exit(1)
-
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
             print(line)
@@ -896,7 +895,7 @@ def prepareGraphFiles(args):
     ### Post prep clean up function
     args.input = f"{gfafile}"
     print(f"\nCleaning up intermediate files from {args.input}")
-    postprepcleanup(args)
+    #postprepcleanup(args)
 
 
 def main():
