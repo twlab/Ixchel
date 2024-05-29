@@ -988,7 +988,6 @@ def convertConversionCodeSingle(args):
     if conversionCode >= 1:
         isReferenceFlag = True
         conversionCode -= 1
-
     # print header line
     print("isReferenceFlag\thasAnchorFlag\tlengthFlag\tlengthMatchFlag\thasMultipleAnchorsFlag\tisQueryFlag\tgeneralErrorFlag")
     # print values
