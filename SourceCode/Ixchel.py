@@ -1046,7 +1046,7 @@ def convertConversionCodes(args):
                 isReferenceFlag = True
                 conversionCode -= 1
             # Write to the output file
-            f_out.write(f"{chromosome}\t{start}\t{stop}\t{L[7]}\t{isReferenceFlag}\t{hasAnchorFlag}\t{lengthFlag}\t{lengthMatchFlag}\t{hasMultipleAnchorsFlag}\t{isQueryFlag}\t{generalErrorFlag}\n")
+            f_out.write(f"{chromosome}\t{start}\t{stop}\t{L[8]}\t{isReferenceFlag}\t{hasAnchorFlag}\t{lengthFlag}\t{lengthMatchFlag}\t{hasMultipleAnchorsFlag}\t{isQueryFlag}\t{generalErrorFlag}\n")
     # Close the files
     f.close()
     f_out.close()
