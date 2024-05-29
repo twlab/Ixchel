@@ -1165,7 +1165,6 @@ def main():
     # Convert all conversion codes in a .methylC file to flags
     parser_convertConversionCodes = subparsers.add_parser('convertConversionCodes', help='convert all conversion codes in a .methylC file to flags\nthis is experimental and should not be used')
     parser_convertConversionCodes.add_argument('input', type=str, help='.methylC file to convert')
-    parser_convertConversionCodes.add_argument('convertedfile', type=str, help='converted .methylC file')
     parser_convertConversionCodes.set_defaults(func=convertConversionCodes)
 
 
