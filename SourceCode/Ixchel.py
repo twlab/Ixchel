@@ -890,7 +890,7 @@ def prepareGraphFiles(args):
     ### Post prep clean up function
     args.input = f"{gfafile}"
     print(f"\nCleaning up intermediate files from {args.input}")
-    #postprepcleanup(args)
+    postprepcleanup(args)
 
 
 def main():
