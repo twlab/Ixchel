@@ -927,11 +927,11 @@ def convertGraphMethylToMethylC(args):
                 # If they are, then pull the values from the dictionary
                 stableSource, start, stop, conversionCode = precomputedConversion[(segmentID, segmentOffset)]
                 # Write to the output file
-                f_out.write(f"{stableSource}\t{start}\t{stop}\t{context}\t{methylatedFraction}\t{strand}\t{coverage}\t{conversionCode}\n")
+                f_out.write(f"{stableSource}\t{start}\t{stop}\t{context}\t{methylatedFraction}\t{strand}\t{coverage}\t{segmentID}:{segmentOffset}\t{conversionCode}\n")
             else:
                 # If they are not, then write a line with NA values
-                print(f"Error: {segmentID}:{segmentOffset} not found in precomputedConversion dictionary.")
-                f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n")
+                #print(f"Error: {segmentID}:{segmentOffset} not found in precomputedConversion dictionary.")
+                f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\t{segmentID}:{segmentOffset}\tNA\n")
     # Close the files
     f.close()
     f_out.close()
