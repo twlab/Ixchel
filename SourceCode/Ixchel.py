@@ -272,7 +272,7 @@ def makeAnchorLinkHashPickle(args):
     f.close()
 
 def makeLinkArrayPickles(args):
-    print("Making link array pickles")
+    #print("Making link array pickles")
     ReferenceSegmentsPickle = args.ReferenceSegmentsPickle
     LinksPickle = args.FilteredLinksPickle
     UpstreamOutputFile = "UpstreamArray." + ReferenceSegmentsPickle
