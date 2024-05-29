@@ -187,6 +187,10 @@ def create_link_search_keys(refsegmentsfile):
     search_keys_file = "temp_link_search_keys.txt"
     seen = set()  # This set will automatically handle unique entries
     print(f"... Creating search keys from {refsegmentsfile}")
+    # Check if the file exists
+    if not os.path.exists(refsegmentsfile):
+        print(f"Error: Reference segments file {refsegmentsfile} does not exist!")
+        return
     with open(refsegmentsfile, 'r') as infile:
         for line in infile:
             print(line)
