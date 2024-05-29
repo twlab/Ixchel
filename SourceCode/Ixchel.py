@@ -819,38 +819,38 @@ def prepareGraphFiles(args):
 
     ### Extract Annotations
     args.input = f"{gfafile}"
-    print(f"Extracting annotations from {gfafile}")
+    print(f"\nExtracting annotations from {gfafile}")
     extract_cytosine_annotations(args)
 
     ### Split Segments
     args.input = f"Segments.{gfafile}"
-    print(f"Splitting segments from {args.input}")
+    print(f"\nSplitting segments from {args.input}")
     split_segments(args)
 
     ### Serialize Query Segments
     args.input = f"QueryOnly.Segments.{gfafile}"
-    print(f"Serializing Query Segments from {args.input}")
+    print(f"\nSerializing Query Segments from {args.input}")
     makeQuerySegmentHashPickle(args)
 
     ### Serialize Reference Segments
     args.input = f"RefOnly.Segments.{gfafile}"
-    print(f"Serializing Reference Segments from {args.input}")
+    print(f"\nSerializing Reference Segments from {args.input}")
     makeRefSegmentHashPickle(args)
 
     ### Extract Links
     args.input = f"{gfafile}"
-    print(f"Extracting links from {gfafile}")
+    print(f"\nExtracting links from {gfafile}")
     extract_links(args)
 
     ### Filter Links
     args.input = f"Links.{gfafile}"
     args.refsegmentsfile = f"RefOnly.Segments.{gfafile}"
-    print(f"Filtering links from {args.input} using {args.refsegmentsfile}")
+    print(f"\nFiltering links from {args.input} using {args.refsegmentsfile}")
     filter_links(args)
 
     ### Serialize Anchor Links
     args.input = f"FilteredLinks.Links.{gfafile}"
-    print(f"Serializing Anchor Links from {args.input}")
+    print(f"\nSerializing Anchor Links from {args.input}")
     makeAnchorLinkHashPickle(args)
 
     ### Make up and down stream links
@@ -858,12 +858,12 @@ def prepareGraphFiles(args):
     gfafileBase = os.path.splitext(gfafile)[0]
     args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
     args.FilteredLinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
-    print(f"Making link array pickles from {args.ReferenceSegmentsPickle} and {args.FilteredLinksPickle}")
+    print(f"\nMaking link array pickles from {args.ReferenceSegmentsPickle} and {args.FilteredLinksPickle}")
     makeLinkArrayPickles(args)
 
     ### Split Annotations
     args.input = f"Annotations.Segments.{gfafile}"
-    print(f"Splitting annotations from {args.input}")
+    print(f"\nSplitting annotations from {args.input}")
     split_annotations_file(args)
 
     ### Precompute conversions - all
@@ -876,7 +876,7 @@ def prepareGraphFiles(args):
     args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
     args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
     args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafileBase}.pkl"
-    print(f"Precomputing conversion from {args.AnnotationFile} using {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
+    print(f"\nPrecomputing conversion from {args.AnnotationFile} using {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
     print(f"UpstreamOutputFile: {args.UpstreamOutputFile}")
     print(f"DownstreamOutputFile: {args.DownstreamOutputFile}")
     print(f"DoubleAnchorFile: {args.DoubleAnchorFile}")
@@ -884,12 +884,12 @@ def prepareGraphFiles(args):
 
     ### build and serialize precomputed conversion dictionary
     args.precomputedfile = f"Annotations.Segments.{gfafile}.converted"
-    print(f"Serializing precomputed conversion dictionary from {args.precomputedfile}")
+    print(f"\nSerializing precomputed conversion dictionary from {args.precomputedfile}")
     SerializePrecomputedPositionsHash(args)
 
     ### Post prep clean up function
     args.input = f"{gfafile}"
-    print(f"Cleaning up intermediate files from {args.input}")
+    print(f"\nCleaning up intermediate files from {args.input}")
     postprepcleanup(args)
 
 
