@@ -892,6 +892,51 @@ def prepareGraphFiles(args):
     print(f"\nCleaning up intermediate files from {args.input}")
     postprepcleanup(args)
 
+def convertGraphMethylToMethylC(args):
+    # Load in serialized precomputed conversion dictionary from precomputedfile file
+    precomputedfile = args.precomputedfile
+    # Check to make sure the precomputedfile exists
+    if not os.path.exists(precomputedfile):
+        print(f"Error: {precomputedfile} does not exist.")
+        sys.exit(1)
+    print(f"Loading precomputed conversion dictionary from {precomputedfile}")
+    with open(precomputedfile, 'rb') as f:
+        precomputedConversion = pickle.load(f)
+    f.close()
+    # Load in the GraphMethyl file
+    graphmethylFile = args.input
+    # Check to make sure the GraphMethyl file exists
+    if not os.path.exists(graphmethylFile):
+        print(f"Error: {graphmethylFile} does not exist.")
+        sys.exit(1)
+    # generate the output file name. Strip the extension from the input file and add .methylc
+    outputfile = os.path.splitext(graphmethylFile)[0] + ".methylc"
+    print(f"Converting GraphMethyl file: {graphmethylFile} to MethylC format: {outputfile}")
+    # Open the GraphMethyl file and convert to MethylC format
+    with open(graphmethylFile, 'r') as f, open(outputfile, 'w') as f_out:
+        for line in f:
+            L = line.strip().split()
+            segmentID = L[0]
+            segmentOffset = L[1]
+            strand = L[2]
+            #context = L[3]
+            #unmethylated = L[4]
+            #methylated = L[5]
+            coverage = L[6]
+            methylatedFraction = L[7]
+            # Check if the segmentID and segmentOffset are in the precomputedConversion dictionary
+            if (segmentID, segmentOffset) in precomputedConversion:
+                # If they are, then pull the values from the dictionary
+                stableSource, start, stop, convertedContext, falseconvertedMethylatedFraction, sense, falsecoverage, conversionCode = precomputedConversion[(segmentID, segmentOffset)]
+                # Write to the output file
+                f_out.write(f"{stableSource}\t{start}\t{stop}\t{convertedContext}\t{methylatedFraction}\t{strand}\t{coverage}\t{conversionCode}\n")
+            else:
+                # If they are not, then write a line with NA values
+                f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n")
+    # Close the files
+    f.close()
+    f_out.close()
+    print("... Complete!")
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
@@ -979,6 +1024,14 @@ def main():
     parser_prepareGraphFiles.add_argument('--reference_name', type=str, help='reference name to filter by, default is GRCh38', default='GRCh38')
     parser_prepareGraphFiles.add_argument('--lines_per_chunk', type=int, help='number of lines per chunk', default=100000)
     parser_prepareGraphFiles.set_defaults(func=prepareGraphFiles)
+
+    # convertGraphMethylToMethylC
+    # Convert a .graph.methyl annotation file to .methylC format
+    # Use precomputed conversion dictionary to convert the .graph.methyl file to .methylC format
+    parser_convertGraphMethylToMethylC = subparsers.add_parser('convertGraphMethylToMethylC', help='convert .graph.methyl file to .methylC')
+    parser_convertGraphMethylToMethylC.add_argument('input', type=str, help='.graph.methyl file to convert')
+    parser_convertGraphMethylToMethylC.add_argument('precomputedfile', type=str, help='serialized (.pkl) precomputed conversion dictionary file')
+    parser_convertGraphMethylToMethylC.set_defaults(func=convertGraphMethylToMethylC)
 
     # Misc, For vg surject approach - Parser for convert a .graph.methyl annotation file to .gaf file, requires a .gfa file with segments to calculate path lengths
     parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf\nthis is experimental and should not be used')
