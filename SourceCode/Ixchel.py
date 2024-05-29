@@ -220,7 +220,7 @@ def filter_links(args):
                 outfile.write(line)  # Write to output if the search term is found in keys
 
     print(f"... Removing temporary search keys file")
-    #os.remove(search_keys_file)
+    os.remove(search_keys_file)
 
 def makeAnchorLinkHashPickle(args):
     print("Making anchor link hash pickle")
