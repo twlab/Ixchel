@@ -919,17 +919,15 @@ def convertGraphMethylToMethylC(args):
             segmentID = L[0]
             segmentOffset = L[1]
             strand = L[2]
-            #context = L[3]
-            #unmethylated = L[4]
-            #methylated = L[5]
+            context = L[3]
             coverage = L[6]
             methylatedFraction = L[7]
             # Check if the segmentID and segmentOffset are in the precomputedConversion dictionary
             if (segmentID, segmentOffset) in precomputedConversion:
                 # If they are, then pull the values from the dictionary
-                stableSource, start, stop, convertedContext, falseconvertedMethylatedFraction, sense, falsecoverage, conversionCode = precomputedConversion[(segmentID, segmentOffset)]
+                stableSource, start, stop, conversionCode = precomputedConversion[(segmentID, segmentOffset)]
                 # Write to the output file
-                f_out.write(f"{stableSource}\t{start}\t{stop}\t{convertedContext}\t{methylatedFraction}\t{strand}\t{coverage}\t{conversionCode}\n")
+                f_out.write(f"{stableSource}\t{start}\t{stop}\t{context}\t{methylatedFraction}\t{strand}\t{coverage}\t{conversionCode}\n")
             else:
                 # If they are not, then write a line with NA values
                 f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n")
