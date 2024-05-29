@@ -83,9 +83,9 @@ def split_segments(args):
     ref_name = args.reference_name if args.reference_name else "GRCh38"
     ref_output = f"RefOnly.{input_file}"
     query_output = f"QueryOnly.{input_file}"
-
-    ref_pattern = re.compile(rf"SN:Z:{ref_name}\.\w+")
-
+    # Match the reference name in the segment line. Example: SN:Z:GRCh38#0#chr1
+    ref_pattern = re.compile(f"SN:Z:{ref_name}#")
+    # ref_pattern = re.compile(rf"SN:Z:{ref_name}\.\w+")
     with open(input_file, 'r') as f, open(ref_output, 'w') as ref_out, open(query_output, 'w') as query_out:
         for line in f:
             print(f"refsegline: {line}")
