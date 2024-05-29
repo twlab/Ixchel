@@ -1,13 +1,15 @@
 # Annotation surjection with Ixchel
 Ixchel is a genome-graph based tool intended to aid in the conversion of annotations in graph-coordinates to linear coordinates.
 It is early in development and currently only has functionality designed for surjecting annotations (.graph.methyl) data for CpG sites.
+Currently, it only works with CpG sites, but the goal is to expand it to other types of annotations.
+Given the tremendous size of genomes, the steps will likely need to be run individually on a cluster.
 
 ## Overview of Ixchel process
 ```mermaid
 flowchart TB
     Genomegraph["Genome-graph (.GFA)"] --> IxchelPrep["1) Ixchel --prepareGraphFiles"]
     IxchelPrep --> GraphFiles["Pre-computed conversion files"]
-    GraphFiles --> IxchelSurject["2) Ixchel --surject --mode CpG"]
+    GraphFiles --> IxchelSurject["2) Ixchel --convertGraphMethylToMethylC"]
     Annotations["Annotations (.graph.methyl)"] --> IxchelSurject
     IxchelSurject --> SurjectedAnnotations["Surjected annotations (.methylC)"]
     SurjectedAnnotations --> IxchelInterpretCodes["3) Ixchel --interpretCodes"]
