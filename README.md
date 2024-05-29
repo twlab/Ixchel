@@ -7,12 +7,12 @@ Given the tremendous size of genomes, the steps will likely need to be run indiv
 ## Overview of Ixchel process
 ```mermaid
 flowchart TB
-    Genomegraph["Genome-graph (.GFA)"] --> IxchelPrep["1) Ixchel --prepareGraphFiles"]
+    Genomegraph["Genome-graph (.GFA)"] --> IxchelPrep["1) Ixchel prepareGraphFiles"]
     IxchelPrep --> GraphFiles["Pre-computed conversion files"]
-    GraphFiles --> IxchelSurject["2) Ixchel --convertGraphMethylToMethylC"]
+    GraphFiles --> IxchelSurject["2) Ixchel convertGraphMethylToMethylC"]
     Annotations["Annotations (.graph.methyl)"] --> IxchelSurject
     IxchelSurject --> SurjectedAnnotations["Surjected annotations (.methylC)"]
-    SurjectedAnnotations --> IxchelInterpretCodes["3) Ixchel --interpretCodes"]
+    SurjectedAnnotations --> IxchelInterpretCodes["3) Ixchel convertConversionCodes"]
     IxchelInterpretCodes --> ExpandedCodes["Expanded conversion codes"]
     
     classDef default fill:#fff,stroke:#333,stroke-width:4px,color:black;
