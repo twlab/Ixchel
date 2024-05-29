@@ -1016,7 +1016,7 @@ def convertConversionCodes(args):
             chromosome = L[0]
             start = L[1]
             stop = L[2]
-            conversionCode = int(L[7])
+            conversionCode = int(L[8])
             isReferenceFlag = False
             hasAnchorFlag = False
             lengthFlag = False
