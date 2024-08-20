@@ -927,11 +927,6 @@ def main():
     parser_convertConversionCode.add_argument('conversioncode', type=int, help='conversion code to convert')
     parser_convertConversionCode.set_defaults(func=convertConversionCodeSingle)
 
-    parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf\nthis is experimental and should not be used')
-    parser_convertGraphMethylToGAF.add_argument('input', type=str, help='.graph.methyl file to convert')
-    parser_convertGraphMethylToGAF.add_argument('gfafile', type=str, help='.gfa file to calculate path lengths')
-    parser_convertGraphMethylToGAF.set_defaults(func=convertGraphMethylToGAF)
-
     parser_convertConversionCodes = subparsers.add_parser('convertConversionCodes', help='convert all conversion codes in a .methylC file to flags\nthis is experimental and should not be used')
     parser_convertConversionCodes.add_argument('input', type=str, help='.methylC file to convert')
     parser_convertConversionCodes.set_defaults(func=convertConversionCodes)
