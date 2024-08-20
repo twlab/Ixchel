@@ -769,6 +769,82 @@ def convertConversionCodes(args):
     f_out.close()
     print("... Complete!")
 
+def prepareGraphFiles(args):
+    gfafile = args.input
+
+    ### Extract Segments
+    extract_segments(args)
+
+    ### Extract Annotations
+    args.input = f"{gfafile}"
+    extract_cytosine_annotations(args)
+
+    ### Split Segments
+    args.input = f"Segments.{gfafile}"
+    print(f"\nSplitting segments from {args.input}...")
+    split_segments(args)
+
+    ### Serialize Query Segments
+    args.input = f"QueryOnly.Segments.{gfafile}"
+    print(f"\nSerializing Query Segments from {args.input}...")
+    makeQuerySegmentHashPickle(args)
+
+    ### Serialize Reference Segments
+    args.input = f"RefOnly.Segments.{gfafile}"
+    print(f"\nSerializing Reference Segments from {args.input}...")
+    makeRefSegmentHashPickle(args)
+
+    ### Extract Links
+    args.input = f"{gfafile}"
+    extract_links(args)
+
+    ### Filter Links
+    args.input = f"Links.{gfafile}"
+    args.refsegmentsfile = f"RefOnly.Segments.{gfafile}"
+    filter_links(args)
+
+    ### Serialize Anchor Links
+    args.input = f"FilteredLinks.Links.{gfafile}"
+    print(f"\nSerializing Anchor Links from {args.input}...")
+    makeAnchorLinkHashPickle(args)
+
+    ### Make up and down stream links
+    gfafileBase = os.path.splitext(gfafile)[0]
+    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
+    args.FilteredLinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
+    print(f"\nMaking link array pickles from {args.ReferenceSegmentsPickle} and {args.FilteredLinksPickle}")
+    makeLinkArrayPickles(args)
+
+    ### Split Annotations
+    args.input = f"Annotations.Segments.{gfafile}"
+    split_annotations_file(args)
+
+    ### Precompute conversions - all
+    gfafileBase = os.path.splitext(gfafile)[0]
+    args.AnnotationFile = f"Annotations.Segments.{gfafile}"
+    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
+    args.QuerySegmentsPickle = f"QueryOnly.Segments.{gfafileBase}.pkl"
+    args.LinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
+    args.RefOnlyParam = "False"
+    args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
+    args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
+    args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafileBase}.pkl"
+    print(f"\nPrecomputing conversion from {args.AnnotationFile} using {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
+    print(f"UpstreamOutputFile: {args.UpstreamOutputFile}")
+    print(f"DownstreamOutputFile: {args.DownstreamOutputFile}")
+    print(f"DoubleAnchorFile: {args.DoubleAnchorFile}")
+    precompute_conversion(args)
+
+    ### Build and serialize precomputed conversion dictionary
+    args.precomputedfile = f"Annotations.Segments.{gfafile}.converted"
+    print(f"\nSerializing precomputed conversion dictionary from {args.precomputedfile}")
+    SerializePrecomputedPositionsHash(args)
+
+    ### Post prep clean up function
+    args.input = f"{gfafile}"
+    print(f"\nCleaning up intermediate files from {args.input}")
+    postprepcleanup(args)
+
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
     subparsers = parser.add_subparsers(dest='command', help='sub-command help')
@@ -853,11 +929,11 @@ def main():
 
     parser_convertGraphMethylToGAF = subparsers.add_parser('convertGraphMethylToGAF', help='convert .graph.methyl file to .gaf\nthis is experimental and should not be used')
     parser_convertGraphMethylToGAF.add_argument('input', type=str, help='.graph.methyl file to convert')
-    parser_convertGraphMethylToGAF.add_argument('gfafile', type=str, help='.gfa file to calculate path lengths')
+    parser_convertGraphMethylToGAF.add.argument('gfafile', type=str, help='.gfa file to calculate path lengths')
     parser_convertGraphMethylToGAF.set_defaults(func=convertGraphMethylToGAF)
 
     parser_convertConversionCodes = subparsers.add_parser('convertConversionCodes', help='convert all conversion codes in a .methylC file to flags\nthis is experimental and should not be used')
-    parser_convertConversionCodes.add_argument('input', type=str, help='.methylC file to convert')
+    parser_convertConversionCodes.add.argument('input', type=str, help='.methylC file to convert')
     parser_convertConversionCodes.set_defaults(func=convertConversionCodes)
 
     args = parser.parse_args()
