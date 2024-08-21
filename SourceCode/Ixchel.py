@@ -602,7 +602,14 @@ def SerializePrecomputedPositionsHash(args):
         data = []
         for line in PreComputedPositionsFile:
             line = line.strip().split('\t')
-            data.append((line[8], line[9], line[0], int(line[1]), int(line[2]), int(line[7])))
+            # Handle cases where the value is 'NA'
+            start = int(line[1]) if line[1] != 'NA' else None
+            stop = int(line[2]) if line[2] != 'NA' else None
+            conversion_code = int(line[7]) if line[7] != 'NA' else None
+
+            # Append the entry even if some values are None (NULL in SQL)
+            data.append((line[8], line[9], line[0], start, stop, conversion_code))
+
             if len(data) % 1000000 == 0:
                 cursor.executemany('INSERT OR REPLACE INTO conversion VALUES (?, ?, ?, ?, ?, ?)', data)
                 conn.commit()
