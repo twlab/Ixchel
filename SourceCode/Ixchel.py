@@ -13,6 +13,7 @@ import os
 import glob
 import shutil
 import sqlite3
+import tqdm  # Import tqdm for progress tracking
 
 # Nested dictionary function
 def rec_dd():
@@ -33,7 +34,7 @@ def extract_segments(args):
 
     print(f"Extracting segments from {input_file} to {output_file}")
     with open(input_file, 'r') as f, open(output_file, 'w') as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Extracting segments", unit="lines"):
             if line.startswith('S'):
                 f_out.write(line)
 
@@ -49,7 +50,7 @@ def extract_cytosine_annotations(args):
 
     print(f"Extracting cytosine annotations from {input_file} to {output_file}")
     with open(input_file, 'r') as f, open(output_file, "w", buffering=1000000) as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Extracting cytosine annotations", unit="lines"):
             if line.startswith('S'):  # Only process segment lines
                 segment_id, sequence = line.strip().split()[1:3]
                 cytosine_positions = [i for i in range(len(sequence)) if sequence[i] == "C"]
@@ -79,7 +80,7 @@ def split_segments(args):
     query_output = f"QueryOnly.{input_file}"
     ref_pattern = re.compile(f"SN:Z:{ref_name}")
     with open(input_file, 'r') as f, open(ref_output, 'w') as ref_out, open(query_output, 'w') as query_out:
-        for line in f:
+        for line in tqdm(f, desc="Splitting segments", unit="lines"):
             if ref_pattern.search(line):
                 ref_out.write(line)
             else:
@@ -98,7 +99,7 @@ def makeRefSegmentHashPickle(args):
     print(f"... Input file: {INPUTFILE}")
 
     with open(INPUTFILE) as f:
-        for line in f:
+        for line in tqdm(f, desc="Populating dictionary", unit="lines"):
             L = line.strip().split()
             SEGMENTID = L[1]
             SEQUENCELENGTH = len(L[2])
@@ -132,7 +133,7 @@ def makeQuerySegmentHashPickle(args):
     print(INPUTFILE)
 
     with open(INPUTFILE) as f:
-        for line in f:
+        for line in tqdm(f, desc="Populating dictionary", unit="lines"):
             L = line.strip().split()
             SEGMENTID = L[1]
             SEQUENCELENGTH = len(L[2])
@@ -160,7 +161,7 @@ def extract_links(args):
 
     print(f"Extracting links from {input_file} to {output_file}")
     with open(input_file, 'r') as f, open(output_file, 'w') as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Extracting links", unit="lines"):
             if line.startswith('L'):
                 f_out.write(line)
 
@@ -172,7 +173,7 @@ def create_link_search_keys(refsegmentsfile):
         print(f"Error: {refsegmentsfile} does not exist!")
         sys.exit(1)
     with open(refsegmentsfile, 'r') as infile:
-        for line in infile:
+        for line in tqdm(infile, desc="Processing search keys", unit="lines"):
             if line.startswith('S'):
                 parts = line.split('\t')
                 if len(parts) > 1:
@@ -196,7 +197,7 @@ def filter_links(args):
 
     print(f"... Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
-        for line in infile:
+        for line in tqdm(infile, desc="Filtering", unit="lines"):
             search_term = "L\t" + line.split('\t')[1] + "\t"
             if search_term in keys:
                 outfile.write(line)
@@ -216,7 +217,7 @@ def makeAnchorLinkHashPickle(args):
 
     print("... Input file:" + INPUTFILE)
     with open(INPUTFILE) as f:
-        for line in f:
+        for line in tqdm(f, desc="Populating anchor link dictionary", unit="lines"):
             L = line.strip().split()
             REFSEGMENTID = L[1]
             QUERYSEGMENTID = L[3]
@@ -308,7 +309,7 @@ def split_annotations_file(args):
             file_number = 1
             current_file = None
 
-            for line in file:
+            for line in tqdm(file, desc="Splitting", unit="lines"):
                 if count % lines_per_chunk == 0:
                     if current_file:
                         current_file.close()
@@ -567,7 +568,7 @@ def precompute_conversion(args):
     print("... Starting conversion")
     with open(OutputFile, "w", buffering=1000000) as output:
         with open(AnnotationFile, "r") as input:
-            for line in input:
+            for line in tqdm(input, desc="Saving to file", unit="lines"):
                 if RefOnlyParam == "True":
                     output.write("\t".join([str(i) for i in pullRefOnlyCoords(line)]) + "\n")
                 else:
@@ -669,7 +670,7 @@ def convertGraphMethylToMethylC(args):
     print(f"Converting GraphMethyl file: {graphmethylFile} to MethylC format: {outputfile}")
 
     with open(graphmethylFile, 'r') as f, open(outputfile, 'w') as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Converting", unit="lines"):
             L = line.strip().split()
             segmentID = L[0]
             segmentOffset = L[1]
