@@ -13,6 +13,7 @@ import os
 import glob
 import shutil
 import sqlite3
+from tqdm import tqdm  # Progress bar library
 
 # Nested dictionary function
 def rec_dd():
@@ -33,9 +34,10 @@ def extract_segments(args):
 
     print(f"Extracting segments from {input_file} to {output_file}")
     with open(input_file, 'r') as f, open(output_file, 'w') as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Extracting segments", unit=" lines"):
             if line.startswith('S'):
                 f_out.write(line)
+    print(f"Extraction complete. Saved to {output_file}")
 
 # Use subprocess to call wc -l for counting lines
 def count_lines(filename):
@@ -49,7 +51,7 @@ def extract_cytosine_annotations(args):
 
     print(f"Extracting cytosine annotations from {input_file} to {output_file}")
     with open(input_file, 'r') as f, open(output_file, "w", buffering=1000000) as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Extracting annotations", unit=" lines"):
             if line.startswith('S'):  # Only process segment lines
                 segment_id, sequence = line.strip().split()[1:3]
                 cytosine_positions = [i for i in range(len(sequence)) if sequence[i] == "C"]
@@ -65,11 +67,11 @@ def extract_cytosine_annotations(args):
                     entry = generate_entry_cytosine_reverse(segment_id, pos)
                     f_out.write("\t".join(map(str, entry)) + "\n")
 
-    # use system commands to report some statistics
+    # Use system commands to report some statistics
     segments_count = count_lines(input_file)
-    print(f"    Number of segments in {input_file}: {segments_count}")
     annotations_count = count_lines(output_file)
-    print(f"    Number of annotations in {output_file}: {annotations_count}")
+    print(f"Number of segments in {input_file}: {segments_count}")
+    print(f"Number of annotations in {output_file}: {annotations_count}")
 
 # Function to split segments into reference and query only files
 def split_segments(args):
@@ -79,7 +81,7 @@ def split_segments(args):
     query_output = f"QueryOnly.{input_file}"
     ref_pattern = re.compile(f"SN:Z:{ref_name}")
     with open(input_file, 'r') as f, open(ref_output, 'w') as ref_out, open(query_output, 'w') as query_out:
-        for line in f:
+        for line in tqdm(f, desc="Splitting segments", unit=" lines"):
             if ref_pattern.search(line):
                 ref_out.write(line)
             else:
@@ -96,9 +98,8 @@ def makeRefSegmentHashPickle(args):
     OUTPUTFILE = f"{base}.pkl"
 
     print(f"... Input file: {INPUTFILE}")
-
     with open(INPUTFILE) as f:
-        for line in f:
+        for line in tqdm(f, desc="Processing segments", unit=" lines"):
             L = line.strip().split()
             SEGMENTID = L[1]
             SEQUENCELENGTH = len(L[2])
@@ -113,12 +114,10 @@ def makeRefSegmentHashPickle(args):
                 bed_dict[SEGMENTID]["SegmentLength"] = SEQUENCELENGTH
                 bed_dict[SEGMENTID]["StableOffset"] = STABLEOFFSET
 
-    print("... Saving to: ")
-    print(OUTPUTFILE)
-
-    f = open(OUTPUTFILE, "wb")
-    pickle.dump(bed_dict, f)
-    f.close()
+    print(f"... Saving to {OUTPUTFILE}")
+    with open(OUTPUTFILE, "wb") as f:
+        pickle.dump(bed_dict, f)
+    print("Reference segment hash pickle complete")
 
 def makeQuerySegmentHashPickle(args):
     bed_dict = rec_dd()
@@ -128,11 +127,9 @@ def makeQuerySegmentHashPickle(args):
     base = os.path.splitext(INPUTFILE)[0]
     OUTPUTFILE = f"{base}.pkl"
 
-    print("... Input file: ")
-    print(INPUTFILE)
-
+    print(f"... Input file: {INPUTFILE}")
     with open(INPUTFILE) as f:
-        for line in f:
+        for line in tqdm(f, desc="Processing segments", unit=" lines"):
             L = line.strip().split()
             SEGMENTID = L[1]
             SEQUENCELENGTH = len(L[2])
@@ -147,12 +144,10 @@ def makeQuerySegmentHashPickle(args):
                 bed_dict[SEGMENTID]["SegmentLength"] = SEQUENCELENGTH
                 bed_dict[SEGMENTID]["StableOffset"] = STABLEOFFSET
 
-    print("Saving to: ")
-    print(OUTPUTFILE)
-
-    f = open(OUTPUTFILE, "wb")
-    pickle.dump(bed_dict, f)
-    f.close()
+    print(f"Saving to {OUTPUTFILE}")
+    with open(OUTPUTFILE, "wb") as f:
+        pickle.dump(bed_dict, f)
+    print("Query segment hash pickle complete")
 
 def extract_links(args):
     input_file = args.input
@@ -160,9 +155,10 @@ def extract_links(args):
 
     print(f"Extracting links from {input_file} to {output_file}")
     with open(input_file, 'r') as f, open(output_file, 'w') as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Extracting links", unit=" lines"):
             if line.startswith('L'):
                 f_out.write(line)
+    print(f"Links extraction complete. Saved to {output_file}")
 
 def create_link_search_keys(refsegmentsfile):
     search_keys_file = "temp_link_search_keys.txt"
@@ -172,7 +168,7 @@ def create_link_search_keys(refsegmentsfile):
         print(f"Error: {refsegmentsfile} does not exist!")
         sys.exit(1)
     with open(refsegmentsfile, 'r') as infile:
-        for line in infile:
+        for line in tqdm(infile, desc="Generating search keys", unit=" lines"):
             if line.startswith('S'):
                 parts = line.split('\t')
                 if len(parts) > 1:
@@ -196,13 +192,14 @@ def filter_links(args):
 
     print(f"... Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
-        for line in infile:
+        for line in tqdm(infile, desc="Filtering links", unit=" lines"):
             search_term = "L\t" + line.split('\t')[1] + "\t"
             if search_term in keys:
                 outfile.write(line)
 
     print(f"... Removing temporary search keys file")
     os.remove(search_keys_file)
+    print(f"Links filtering complete. Saved to {output_file}")
 
 def makeAnchorLinkHashPickle(args):
     print("Making anchor link hash pickle")
@@ -214,9 +211,9 @@ def makeAnchorLinkHashPickle(args):
     OUTPUTFILE = base + ".pkl"
     DOUBLEANCHORFILE = "DoubleAnchored." + base + ".pkl"
 
-    print("... Input file:" + INPUTFILE)
+    print(f"... Input file: {INPUTFILE}")
     with open(INPUTFILE) as f:
-        for line in f:
+        for line in tqdm(f, desc="Processing anchor links", unit=" lines"):
             L = line.strip().split()
             REFSEGMENTID = L[1]
             QUERYSEGMENTID = L[3]
@@ -236,17 +233,13 @@ def makeAnchorLinkHashPickle(args):
                 bed_dict[QUERYSEGMENTID]["QueryStrand"] = QUERYSTRAND
                 bed_dict[QUERYSEGMENTID]["Tag"] = TAG
 
-    print("... Saving to:" + OUTPUTFILE)
-
-    f = open(OUTPUTFILE, "wb")
-    pickle.dump(bed_dict, f)
-    f.close()
-
-    print("... Saving double anchor file to:" + DOUBLEANCHORFILE)
-
-    f = open(DOUBLEANCHORFILE, "wb")
-    pickle.dump(doubleanchor_dict, f)
-    f.close()
+    print(f"... Saving to {OUTPUTFILE}")
+    with open(OUTPUTFILE, "wb") as f:
+        pickle.dump(bed_dict, f)
+    print(f"... Saving double anchor file to {DOUBLEANCHORFILE}")
+    with open(DOUBLEANCHORFILE, "wb") as f:
+        pickle.dump(doubleanchor_dict, f)
+    print("Anchor link hash pickle complete")
 
 def makeLinkArrayPickles(args):
     ReferenceSegmentsPickle = args.ReferenceSegmentsPickle
@@ -262,33 +255,28 @@ def makeLinkArrayPickles(args):
     print("Adding links segments...")
     with open(LinksPickle, 'rb') as f:
         link_dict = pickle.load(f)
-    f.close()
 
     print("Adding reference segments...")
     with open(ReferenceSegmentsPickle, 'rb') as f:
         ref_dict = pickle.load(f)
-    f.close()
 
     print("Building arrays of upstream and downstream keys from link_dict...")
     upstreamkeyarray = []
     downstreamkeyarray = []
 
-    for key, value in link_dict.items():
+    for key, value in tqdm(link_dict.items(), desc="Building link arrays", unit=" segments"):
         if ref_dict[value["RefSegmentID"]] and ref_dict[key]:
             downstreamkeyarray.append(key)
             upstreamkeyarray.append(value["RefSegmentID"])
 
-    print("Saving to: ")
+    print(f"Saving to {UpstreamOutputFile}")
+    with open(UpstreamOutputFile, "wb") as f:
+        pickle.dump(upstreamkeyarray, f)
 
-    print(UpstreamOutputFile)
-    f = open(UpstreamOutputFile, "wb")
-    pickle.dump(upstreamkeyarray, f)
-    f.close()
-
-    print(DownstreamOutputFile)
-    f = open(DownstreamOutputFile, "wb")
-    pickle.dump(downstreamkeyarray, f)
-    f.close()
+    print(f"Saving to {DownstreamOutputFile}")
+    with open(DownstreamOutputFile, "wb") as f:
+        pickle.dump(downstreamkeyarray, f)
+    print("Link array pickles complete")
 
 def split_annotations_file(args):
     print("Splitting annotations file")
@@ -308,7 +296,7 @@ def split_annotations_file(args):
             file_number = 1
             current_file = None
 
-            for line in file:
+            for line in tqdm(file, desc="Splitting annotations", unit=" lines"):
                 if count % lines_per_chunk == 0:
                     if current_file:
                         current_file.close()
@@ -345,22 +333,18 @@ def precompute_conversion(args):
     print("... Adding reference segments")
     with open(ReferenceSegmentsPickle, 'rb') as f:
         ref_dict = pickle.load(f)
-    f.close()
 
     print("... Adding query segments")
     with open(QuerySegmentsPickle, 'rb') as f:
         query_dict = pickle.load(f)
-    f.close()
 
     print("... Adding links segments")
     with open(LinksPickle, 'rb') as f:
         link_dict = pickle.load(f)
-    f.close()
 
     print("... Adding double anchor segments")
     with open(DoubleAnchorFile, 'rb') as f:
         doubleanchor_dict = pickle.load(f)
-    f.close()
 
     def pullRefOnlyCoords(line):
         L = line.strip().split()
@@ -401,12 +385,10 @@ def precompute_conversion(args):
     print("... Adding upstream links array")
     with open(UpstreamOutputFile, 'rb') as f:
         upstreamkeyarray = pickle.load(f)
-    f.close()
 
     print("... Adding downstream links array")
     with open(DownstreamOutputFile, 'rb') as f:
         downstreamkeyarray = pickle.load(f)
-    f.close()
 
     def pullAllCoords(line):
         L = line.strip().split()
@@ -425,7 +407,7 @@ def precompute_conversion(args):
         if not REFTEST and QUERYTEST:
             try:
                 LENGTHTEST = query_dict[SEGMENTID]["SegmentLength"] <= 2
-            except TypeError or ValueError:
+            except (TypeError, ValueError):
                 LENGTHTEST = False
                 FLAG = True
 
@@ -567,22 +549,20 @@ def precompute_conversion(args):
     print("... Starting conversion")
     with open(OutputFile, "w", buffering=1000000) as output:
         with open(AnnotationFile, "r") as input:
-            for line in input:
+            for line in tqdm(input, desc="Precomputing conversions", unit=" lines"):
                 if RefOnlyParam == "True":
                     output.write("\t".join([str(i) for i in pullRefOnlyCoords(line)]) + "\n")
                 else:
                     output.write("\t".join([str(i) for i in pullAllCoords(line)]) + "\n")
 
-    output.close()
-    input.close()
-    print("... Complete!")
+    print("Conversion complete")
 
 def SerializePrecomputedPositionsHash(args):
     INPUTPRECOMPUTEDFILE = args.precomputedfile
     base = os.path.splitext(INPUTPRECOMPUTEDFILE)[0]
     OUTPUTDBFILE = base + ".db"
 
-    print('... Reading in PreComputedPositionsFile')
+    print('Reading in PreComputedPositionsFile')
     conn = sqlite3.connect(OUTPUTDBFILE)
     cursor = conn.cursor()
 
@@ -600,7 +580,7 @@ def SerializePrecomputedPositionsHash(args):
 
     with open(INPUTPRECOMPUTEDFILE, 'r') as PreComputedPositionsFile:
         data = []
-        for line in PreComputedPositionsFile:
+        for line in tqdm(PreComputedPositionsFile, desc="Serializing positions", unit=" lines"):
             line = line.strip().split('\t')
             # Handle cases where the value is 'NA'
             start = int(line[1]) if line[1] != 'NA' else None
@@ -620,9 +600,7 @@ def SerializePrecomputedPositionsHash(args):
             cursor.executemany('INSERT OR REPLACE INTO conversion VALUES (?, ?, ?, ?, ?, ?)', data)
             conn.commit()
 
-    PreComputedPositionsFile.close()
-    conn.close()
-    print("... Complete!")
+    print("Serialization complete")
 
 def postprepcleanup(args):
     print("Cleaning up intermediate files")
@@ -639,19 +617,24 @@ def postprepcleanup(args):
     for file in precomputed_files:
         shutil.move(file, "precomputed")
 
-    os.remove(f"Annotations.Segments.{base}.gfa")
-    os.remove(f"DoubleAnchored.FilteredLinks.Links.{base}.pkl")
-    os.remove(f"DownstreamArray.RefOnly.Segments.{base}.pkl")
-    os.remove(f"FilteredLinks.Links.{base}.gfa")
-    os.remove(f"FilteredLinks.Links.{base}.pkl")
-    os.remove(f"Links.{base}.gfa")
-    os.remove(f"QueryOnly.Segments.{base}.gfa")
-    os.remove(f"QueryOnly.Segments.{base}.pkl")
-    os.remove(f"RefOnly.Segments.{base}.gfa")
-    os.remove(f"RefOnly.Segments.{base}.pkl")
-    os.remove(f"Segments.{base}.gfa")
-    os.remove(f"UpstreamArray.RefOnly.Segments.{base}.pkl")
-    print("... Complete!")
+    files_to_remove = [
+        f"Annotations.Segments.{base}.gfa",
+        f"DoubleAnchored.FilteredLinks.Links.{base}.pkl",
+        f"DownstreamArray.RefOnly.Segments.{base}.pkl",
+        f"FilteredLinks.Links.{base}.gfa",
+        f"FilteredLinks.Links.{base}.pkl",
+        f"Links.{base}.gfa",
+        f"QueryOnly.Segments.{base}.gfa",
+        f"QueryOnly.Segments.{base}.pkl",
+        f"RefOnly.Segments.{base}.gfa",
+        f"RefOnly.Segments.{base}.pkl",
+        f"Segments.{base}.gfa",
+        f"UpstreamArray.RefOnly.Segments.{base}.pkl",
+    ]
+    for file in tqdm(files_to_remove, desc="Removing files", unit=" files"):
+        if os.path.exists(file):
+            os.remove(file)
+    print("Cleanup complete")
 
 def convertGraphMethylToMethylC(args):
     precomputedfile = args.precomputedfile
@@ -669,7 +652,7 @@ def convertGraphMethylToMethylC(args):
     print(f"Converting GraphMethyl file: {graphmethylFile} to MethylC format: {outputfile}")
 
     with open(graphmethylFile, 'r') as f, open(outputfile, 'w') as f_out:
-        for line in f:
+        for line in tqdm(f, desc="Converting GraphMethyl to MethylC", unit=" lines"):
             L = line.strip().split()
             segmentID = L[0]
             segmentOffset = L[1]
@@ -691,9 +674,7 @@ def convertGraphMethylToMethylC(args):
                 f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\t{segmentID}:{segmentOffset}\tNA\n")
 
     conn.close()
-    f.close()
-    f_out.close()
-    print("... Complete!")
+    print(f"Conversion to MethylC format complete. Saved to {outputfile}")
 
 def convertConversionCodeSingle(args):
     conversionCode = args.conversioncode
@@ -737,7 +718,7 @@ def convertConversionCodes(args):
     print(f"Converting conversion codes from {methylCfile} to {outputfile}")
     with open(methylCfile, 'r') as f, open(outputfile, 'w') as f_out:
         f_out.write("chromosome\tstart\tstop\tconversionCode\tisReferenceFlag\thasAnchorFlag\tlengthFlag\tlengthMatchFlag\thasMultipleAnchorsFlag\tisQueryFlag\tgeneralErrorFlag\n")
-        for line in f:
+        for line in tqdm(f, desc="Converting conversion codes", unit=" lines"):
             L = line.strip().split()
             chromosome = L[0]
             start = L[1]
@@ -772,9 +753,7 @@ def convertConversionCodes(args):
                 isReferenceFlag = True
                 conversionCode -= 1
             f_out.write(f"{chromosome}\t{start}\t{stop}\t{L[8]}\t{isReferenceFlag}\t{hasAnchorFlag}\t{lengthFlag}\t{lengthMatchFlag}\t{hasMultipleAnchorsFlag}\t{isQueryFlag}\t{generalErrorFlag}\n")
-    f.close()
-    f_out.close()
-    print("... Complete!")
+    print(f"Conversion codes processing complete. Saved to {outputfile}")
 
 def prepareGraphFiles(args):
     gfafile = args.input
