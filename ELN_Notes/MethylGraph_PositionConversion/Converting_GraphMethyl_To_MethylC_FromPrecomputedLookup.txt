@@ -19,7 +19,7 @@ awk -F "\t" '{if ($1!="NA") print $0}' SplitAnnotations/Split.C.Annotations.GRCh
 paste <(find TESTING/ -name "*_converted.methylC") <(find TESTING/ -name "*_converted.methylC" | sed s/".methylC"/".pkl"/g ) >TESTINGPICKLING.parameters
 
 # Build dictionaries from precomputed graph positions files and pickle them
-sbatch --array=1-$( cat TESTINGPICKLING.parameters | wc -l ) /scratch/hllab/Juan/General_Code/run_Batch_PicklePrecomputedPositionsHash.sh TESTINGPICKLING.parameters
+sbatch --array=1-$( cat TESTINGPICKLING.parameters | wc -l ) /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_PicklePrecomputedPositionsHash.sh TESTINGPICKLING.parameters
 
 Submitted batch job 9748722
 
@@ -53,7 +53,7 @@ for i in $(ls TESTING/*.methylC); do grep -F -f $i"_TESTING.graph.methyl.sorted_
 paste <(find TESTING/ -name "*_TESTING.graph.methyl.sorted_Split.graph.methyl") <(find TESTING/ -name "*_TESTING.graph.methyl.sorted_Split.graph.methyl" | awk -F "converted.methylC" '{print $1"converted.pkl"}') <(find TESTING/ -name "*_TESTING.graph.methyl.sorted_Split.graph.methyl" | sed s/".graph.methyl.sorted_Split.graph.methyl"/".methylC"/g ) >TESTING_CONVERTING.parameters
 
 # Convert graph.methyl to .methylC
-sbatch --array=1-$( cat TESTING_CONVERTING.parameters | wc -l ) /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh TESTING_CONVERTING.parameters
+sbatch --array=1-$( cat TESTING_CONVERTING.parameters | wc -l ) /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh TESTING_CONVERTING.parameters
 
 Submitted batch job 9748725
 
@@ -110,7 +110,7 @@ cd /scratch/hllab/Juan/methylGrapher/TESTING
 paste <(find . -name "CG.graph.methyl") <(find . -name "CG.graph.methyl" | sed s/".graph.methyl"/".graph.methyl.sorted"/g ) >CG.graph.methyl_SORTING.parameters
 
 # Sort .graph.methyl (input) file using the parameters file
-sbatch --array=1-$( cat CG.graph.methyl_SORTING.parameters | wc -l ) /scratch/hllab/Juan/General_Code/run_Batch_sort_Graph.Methyl_files.sh CG.graph.methyl_SORTING.parameters
+sbatch --array=1-$( cat CG.graph.methyl_SORTING.parameters | wc -l ) /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_sort_Graph.Methyl_files.sh CG.graph.methyl_SORTING.parameters
 
 Submitted batch job 9749908
 
@@ -139,7 +139,7 @@ paste \
 cat CG.graph.methyl_SPLITTING.parameters | wc -l
 
 # run splitting script
-sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_Specific.sh CG.graph.methyl_SPLITTING.parameters
+sbatch --array=1-858%40 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_SplitFiles_by_PreSplitKeys_Specific.sh CG.graph.methyl_SPLITTING.parameters
 
 Submitted batch job 9751842
 
@@ -169,7 +169,7 @@ paste <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted") <(find SplitInp
 cat CG.graph.methyl_CONVERTING.parameters | wc -l
 
 # run converting script
-sbatch --array=1-858%100 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh CG.graph.methyl_CONVERTING.parameters
+sbatch --array=1-858%100 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh CG.graph.methyl_CONVERTING.parameters
 
 Submitted batch job 9755363
 
@@ -330,7 +330,7 @@ paste <(find ../GraphFiles/SplitAnnotations/Converted_SegmentAndOffsetKeys/ -nam
 cat CG.graph.methyl_SPLITTING.parameters | wc -l
 
 # run splitting script
-sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh CG.graph.methyl_SPLITTING.parameters
+sbatch --array=1-858%40 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh CG.graph.methyl_SPLITTING.parameters
 
 Submitted batch job 9758866
 
@@ -366,7 +366,7 @@ paste <(find SplitInputFiles/ -name "*__CG.graph.methyl.sorted") <(find SplitInp
 cat CG.graph.methyl_CONVERTING.parameters | wc -l
 
 # run converting script
-sbatch --array=1-858%100 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh CG.graph.methyl_CONVERTING.parameters
+sbatch --array=1-858%100 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh CG.graph.methyl_CONVERTING.parameters
 
 Submitted batch job 9761053
 

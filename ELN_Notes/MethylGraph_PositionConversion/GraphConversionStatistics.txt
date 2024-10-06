@@ -24,7 +24,7 @@ sed -i 's/[ \t]/\t/g' GraphConversionStatistics.txt
 eval $( spack load --sh python@3 )
 
 ## 8. loop through all lines in file as single line commands, extract 2nd column, run python script, append output to file
-paste <(for line in $(cut -f 2 GraphConversionStatistics.txt);do echo $(python3 /scratch/hllab/Juan/General_Code/interpretConversionCode.py $line); done) <(cat GraphConversionStatistics.txt) | sed -E s/" "/"\t"/g > FlagsGraphConversionStatistics.txt
+paste <(for line in $(cut -f 2 GraphConversionStatistics.txt);do echo $(python3 /scratch/hllab/Juan/JuanMacias_General_Code/interpretConversionCode.py $line); done) <(cat GraphConversionStatistics.txt) | sed -E s/" "/"\t"/g > FlagsGraphConversionStatistics.txt
 
 ## 9. This will loop through and pull 8th column of the file and sum it up to get total number of C's then it will divide each count by the total number of C's and multiply by 100 to get the percentage of each flag
 paste <(cat FlagsGraphConversionStatistics.txt) <(for line in $(cut -f 8 FlagsGraphConversionStatistics.txt);do echo $line/$(cut -f 8 FlagsGraphConversionStatistics.txt | awk '{sum+=$1} END {print sum}') | bc -l; done | awk '{printf "%.7f\n", $1*100}') > PercentagesGraphConversionStatistics.txt

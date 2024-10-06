@@ -17,6 +17,6 @@ echo "Input precomputed file: $INPUTPRECOMPUTEDFILE"
 echo "Output pickle file: $OUTPUTPICKLEFILE"
 
 echo "Start python script..."
-python3 -u /scratch/hllab/Juan/General_Code/makePrecomputedConversionPickle.py $INPUTPRECOMPUTEDFILE $OUTPUTPICKLEFILE
+python3 -u /scratch/hllab/Juan/JuanMacias_General_Code/makePrecomputedConversionPickle.py $INPUTPRECOMPUTEDFILE $OUTPUTPICKLEFILE
 
 echo "Python script complete!"

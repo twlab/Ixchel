@@ -32,7 +32,7 @@ echo "Downstream links array file: "$DownstreamLinksArrayFile
 echo "Double anchors file: "$DoubleAnchorsFile
 
 echo "Start python script..."
-python3 /scratch/hllab/Juan/General_Code/convertSegmentToRef.py $INPUTFILE $SEGMENTSPICKLE $QUERYSEGMENTPICK $LINKSPICKLE $OUTPUTFILE $REFONLYPARAM $UpstreamLinksArrayFile $DownstreamLinksArrayFile $DoubleAnchorsFile
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/convertSegmentToRef.py $INPUTFILE $SEGMENTSPICKLE $QUERYSEGMENTPICK $LINKSPICKLE $OUTPUTFILE $REFONLYPARAM $UpstreamLinksArrayFile $DownstreamLinksArrayFile $DoubleAnchorsFile
 
 
 echo "Python script complete!"

@@ -90,7 +90,7 @@ cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/Comb
 
 paste <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz") <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "MethodsCpGIntersect.txt"}') <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "AllIntersectSet_"$4}') <(find ../../BismarkOutputs/ -type f -name "hg38.*methylC.gz" | awk -F "/" '{print "True"}') >BismarkFilteringParms.txt
 
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh BismarkFilteringParms.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh BismarkFilteringParms.txt
 
 Submitted batch job 6103355
 
@@ -103,7 +103,7 @@ cd /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs/Comb
 
 paste <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz") <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz" | awk -F "/" '{print "MethodsCpGIntersect.txt"}') <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz" | awk -F "/" '{print "AllIntersectSet_"$7}') <(find /scratch/hllab/Juan/methylGrapher/BenchmarkingSampleMethylGrapherOutputs -type f -name "Sorted_RefOnly_*_CG.graph.methylC.gz" | awk -F "/" '{print "True"}')>MethylGrapherFilteringParms.txt
 
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh MethylGrapherFilteringParms.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh MethylGrapherFilteringParms.txt
 
 Submitted batch job 6103377
 
@@ -129,7 +129,7 @@ exit
 # Bin methylation (mean)
 paste <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "Sorted_Bins_3kb.BED"}') <(find . -type f -name "AllIntersectSet_*.methylC.gz")  <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "5"}') <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk -F "/" '{print "Binned_"$2}' | sed s/".gz"/""/g) >BinningParams.txt
 
-sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_BedtoolsMapMean.sh BinningParams.txt
+sbatch --array=1-20%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_BedtoolsMapMean.sh BinningParams.txt
 
 Submitted batch job 6103648
 
@@ -138,7 +138,7 @@ mv slurm-6103648_* Logs/
 #Compress
 paste <(find . -type f -name "Binned_AllIntersectSet_*" | awk -F "/" '{print $2}') >Compress_BinnedMeans_Params.txt
 
-sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh Compress_BinnedMeans_Params.txt
+sbatch --array=1-20%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_bgzip.sh Compress_BinnedMeans_Params.txt
 Submitted batch job 6103670
 
 mv slurm-6103670_* Logs/

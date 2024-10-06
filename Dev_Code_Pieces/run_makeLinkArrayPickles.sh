@@ -18,6 +18,6 @@ DownstreamOutputFile=$4
 
 
 echo "Start conversion..."
-python3 /scratch/hllab/Juan/General_Code/makeLinkArrayPickles.py $ReferenceSegmentsPickle $LinksPickle $UpstreamOutputFile $DownstreamOutputFile
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/makeLinkArrayPickles.py $ReferenceSegmentsPickle $LinksPickle $UpstreamOutputFile $DownstreamOutputFile
 
 echo "Complete!"

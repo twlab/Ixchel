@@ -15,6 +15,6 @@ INPUTSEGMENTSFILE=$1
 OUTOUTPICKLE=$2
 
 echo "Start conversion..."
-python3 /scratch/hllab/Juan/General_Code/makeQuerySegmentHashPickle.py $INPUTSEGMENTSFILE $OUTOUTPICKLE
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/makeQuerySegmentHashPickle.py $INPUTSEGMENTSFILE $OUTOUTPICKLE
 
 echo "Complete!"

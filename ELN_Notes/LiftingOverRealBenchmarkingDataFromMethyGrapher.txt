@@ -104,7 +104,7 @@ wc -l SplitParameters_All.txt
 8580
 
 # submit the jobs to the cluster
-sbatch --array=1-8580%200 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh SplitParameters_All.txt
+sbatch --array=1-8580%200 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh SplitParameters_All.txt
 
 Submitted batch job 9787453
 
@@ -132,7 +132,7 @@ cat slurm-9787453_3846.out
 
 # I don't know why these two jobs are different lengths. I'm going to re-run them.
 
-sbatch --array=3846,19%1 /scratch/hllab/Juan/General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh SplitParameters_All.txt
+sbatch --array=3846,19%1 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_SplitFiles_by_PreSplitKeys_MGConversion.sh SplitParameters_All.txt
 
 Submitted batch job 9796100
 
@@ -190,7 +190,7 @@ wc -l ConversionParameters_All.txt
 8580
 
 # submit the jobs to the cluster
-sbatch --array=1-8580%50 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh ConversionParameters_All.txt
+sbatch --array=1-8580%50 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh ConversionParameters_All.txt
 
 Submitted batch job 9796103
 
@@ -233,7 +233,7 @@ wc -l ConversionParameters_HG03516.txt
 1716
 
 # submit the jobs to the cluster
-sbatch --array=1-1716%50 /scratch/hllab/Juan/General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh ConversionParameters_HG03516.txt
+sbatch --array=1-1716%50 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_convertGraphMethyl_To_MethylC.sh ConversionParameters_HG03516.txt
 
 Submitted batch job 9806253
 
@@ -272,43 +272,43 @@ cat HG03516/BRep2/SplitOutputFiles/*.methylC >HG03516/BRep2/CG.graph.Precomputed
 find HG0* -type d -name "SplitOutputFiles" | xargs rm -r
 
 # Tar and compress the SplitInputFiles/ directory for each sample by BRep directory use CompressDirectory.sh script on each directory
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00621/BRep1/SplitInputFiles/ HG00621/BRep1/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00621/BRep1/SplitInputFiles/ HG00621/BRep1/
 
 Submitted batch job 9808602
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00621/BRep2/SplitInputFiles/ HG00621/BRep2/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00621/BRep2/SplitInputFiles/ HG00621/BRep2/
 
 Submitted batch job 9808795
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00741/BRep1/SplitInputFiles/ HG00741/BRep1/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00741/BRep1/SplitInputFiles/ HG00741/BRep1/
 
 Submitted batch job 9808796
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00741/BRep2/SplitInputFiles/ HG00741/BRep2/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG00741/BRep2/SplitInputFiles/ HG00741/BRep2/
 
 Submitted batch job 9808797
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01952/BRep1/SplitInputFiles/ HG01952/BRep1/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01952/BRep1/SplitInputFiles/ HG01952/BRep1/
 
 Submitted batch job 9808798
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01952/BRep2/SplitInputFiles/ HG01952/BRep2/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01952/BRep2/SplitInputFiles/ HG01952/BRep2/
 
 Submitted batch job 9808805
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01978/BRep1/SplitInputFiles/ HG01978/BRep1/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01978/BRep1/SplitInputFiles/ HG01978/BRep1/
 
 Submitted batch job 9808806
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01978/BRep2/SplitInputFiles/ HG01978/BRep2/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG01978/BRep2/SplitInputFiles/ HG01978/BRep2/
 
 Submitted batch job 9808807
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG03516/BRep1/SplitInputFiles/ HG03516/BRep1/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG03516/BRep1/SplitInputFiles/ HG03516/BRep1/
 
 Submitted batch job 9808810
 
-sbatch /scratch/hllab/Juan/General_Code/Housekeeping_HTCF/CompressDirectory.sh HG03516/BRep2/SplitInputFiles/ HG03516/BRep2/
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Housekeeping_HTCF/CompressDirectory.sh HG03516/BRep2/SplitInputFiles/ HG03516/BRep2/
 
 Submitted batch job 9808812
 

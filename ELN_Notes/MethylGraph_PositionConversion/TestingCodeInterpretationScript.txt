@@ -9,7 +9,7 @@ srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash
 eval $( spack load --sh python@3 )
 
 ## 4. Build the conversion code dictionary and pickle it
-python3 /scratch/hllab/Juan/General_Code/buildConversionCodeHashPickle.py
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/buildConversionCodeHashPickle.py
 
     initializing dictionary
     building conversion code dictionary
@@ -17,9 +17,9 @@ python3 /scratch/hllab/Juan/General_Code/buildConversionCodeHashPickle.py
     Done.
 
 ## 5. Run the conversion code interpreter
-python3 /scratch/hllab/Juan/General_Code/interpretConversionCode.py 1
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/interpretConversionCode.py 1
 
     True	False	False	False	False	False	False
 
-python3 /scratch/hllab/Juan/General_Code/interpretConversionCode.py 3
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/interpretConversionCode.py 3
     True	True	False	False	False	False	False

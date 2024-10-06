@@ -24,7 +24,7 @@ eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
 
 echo "Start conversion..."
-python3 /scratch/hllab/Juan/General_Code/convertSegmentToRef.py $INPUTFILE $SEGMENTSPICKLE $QUERYSEGMENTSPICKLE $LINKSPICKLE $OUTPUTFILE $REFONLYPARAM $UpstreamLinksArrayFile $DownstreamLinksArrayFile $DoubleAnchorsFile
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/convertSegmentToRef.py $INPUTFILE $SEGMENTSPICKLE $QUERYSEGMENTSPICKLE $LINKSPICKLE $OUTPUTFILE $REFONLYPARAM $UpstreamLinksArrayFile $DownstreamLinksArrayFile $DoubleAnchorsFile
 
 
 echo "Complete!"

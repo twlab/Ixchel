@@ -85,20 +85,20 @@ eval $( spack load --sh py-numpy/i7mcgz4 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
 
-python3 /scratch/hllab/Juan/General_Code/makeRefSegmentHashPickle.py RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/makeRefSegmentHashPickle.py RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
 
 ### Automate
 cd /scratch/hllab/Juan/methylGrapher/
-sbatch /scratch/hllab/Juan/General_Code/run_makeRefSegmentHashPickle.sh RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_makeRefSegmentHashPickle.sh RefOnly.Segments.GRCh38-f1g-90-mc-aug11.gfa RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl
 
 Submitted batch job 5983502
 
 
-#sbatch /scratch/hllab/Juan/General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl
+#sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl
 #
 #Submitted batch job 5985381
 
-sbatch /scratch/hllab/Juan/General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_makeAnchorLinkHashPickle.sh RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.gfa RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl DoubleAnchored.GRCh38-f1g-90-mc-aug11.pkl
 
 Submitted batch job 8416610
 
@@ -118,7 +118,7 @@ eval $( spack load --sh py-numpy/i7mcgz4 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
 
-python3 /scratch/hllab/Juan/General_Code/makeAnchorLinkHashPickle.py TESTSET.txt TEST.pkl
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/makeAnchorLinkHashPickle.py TESTSET.txt TEST.pkl
 
 
 
@@ -154,12 +154,12 @@ eval $( spack load --sh py-numpy/i7mcgz4 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
 
-python3 /scratch/hllab/Juan/General_Code/convertSegmentToRef.py DEMODATA3.txt RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl TESTOUTPUT.txt True
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/convertSegmentToRef.py DEMODATA3.txt RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl TESTOUTPUT.txt True
 
 
 
 
-sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh DEMODATA3.txt RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl TESTOUTPUT.txt True 
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_convertSegmentToRef.sh DEMODATA3.txt RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl TESTOUTPUT.txt True
 Submitted batch job 6082677
 
 
@@ -170,7 +170,7 @@ srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash
 gzip -d CG.graph.methyl.gz
 
 
-sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh CG.graph.methyl RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl CG.graph.methylC True
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_convertSegmentToRef.sh CG.graph.methyl RefOnly.Segments.GRCh38-f1g-90-mc-aug11.pkl RefOnlySourceLinks.GRCh38-f1g-90-mc-aug11.pkl CG.graph.methylC True
 
 
 Submitted batch job 6083360

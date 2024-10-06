@@ -12,6 +12,6 @@ INPUTSEGMENTSFILE=$1
 OUTOUTANNOTATIONSFILE=$2
 
 echo "Start extraction..."
-python3 /scratch/hllab/Juan/General_Code/extractCytosineAnnotationsFromGraphSegments.py $INPUTSEGMENTSFILE $OUTOUTANNOTATIONSFILE
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/extractCytosineAnnotationsFromGraphSegments.py $INPUTSEGMENTSFILE $OUTOUTANNOTATIONSFILE
 
 echo "Complete!"

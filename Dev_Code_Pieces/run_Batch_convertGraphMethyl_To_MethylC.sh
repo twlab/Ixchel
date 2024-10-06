@@ -19,6 +19,6 @@ echo "Input precomputed pickle file: $INPUTPRECOMPUTEDPICKLE"
 echo "Output methylC file: $OUTPUTMETHYLCFILE"
 
 echo "Start python script..."
-python3 /scratch/hllab/Juan/General_Code/convert_GraphMethyl_To_MethylC_fromPrecomputedPickle.py $GRAPHMETHYLFILE $INPUTPRECOMPUTEDPICKLE $OUTPUTMETHYLCFILE
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/convert_GraphMethyl_To_MethylC_fromPrecomputedPickle.py $GRAPHMETHYLFILE $INPUTPRECOMPUTEDPICKLE $OUTPUTMETHYLCFILE
 echo "Python script complete!"
 

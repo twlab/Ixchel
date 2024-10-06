@@ -88,7 +88,7 @@ wc -l FilteringParms.txt
     20 FilteringParms.txt
 
 # run jobs
-sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh FilteringParms.txt
+sbatch --array=1-20%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_grep_FilterPositiveSelect_FromFile_File.sh FilteringParms.txt
 
 Submitted batch job 9869001
 
@@ -105,7 +105,7 @@ wc -l MG_Compression.Params.txt
     10 MG_Compression.Params.txt
 
 # run jobs
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh MG_Compression.Params.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_bgzip.sh MG_Compression.Params.txt
 
 Submitted batch job 9869023
 
@@ -155,7 +155,7 @@ wc -l MG_ReCompression.Params.txt
     10 MG_ReCompression.Params.txt
 
 # run jobs
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh MG_ReCompression.Params.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_bgzip.sh MG_ReCompression.Params.txt
 
 Submitted batch job 9869094
 
@@ -171,7 +171,7 @@ wc -l BedtoolsSortParams.txt
     10 BedtoolsSortParams.txt
 
 # run jobs
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_Bedtools_Sort.sh BedtoolsSortParams.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_Bedtools_Sort.sh BedtoolsSortParams.txt
 
 Submitted batch job 9869188
 
@@ -190,7 +190,7 @@ wc -l MG_Rename.Params.txt
     10 MG_Rename.Params.txt
 
 # run jobs
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_Move_Specific.sh MG_Rename.Params.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_Move_Specific.sh MG_Rename.Params.txt
 
 Submitted batch job 9869198
 
@@ -206,7 +206,7 @@ wc -l MG_FinalCompression.Params.txt
     10 MG_FinalCompression.Params.txt
 
 # run jobs
-sbatch --array=1-10%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh MG_FinalCompression.Params.txt
+sbatch --array=1-10%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_bgzip.sh MG_FinalCompression.Params.txt
 
 Submitted batch job 9869208
 
@@ -222,7 +222,7 @@ paste <(find . -type f -name "AllIntersectSet_*.methylC.gz" | awk '{print "Sorte
 wc -l BinningParams.txt
     20 BinningParams.txt
 
-sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_BedtoolsMapMean.sh BinningParams.txt
+sbatch --array=1-20%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_BedtoolsMapMean.sh BinningParams.txt
 
 Submitted batch job 9869218
 
@@ -241,7 +241,7 @@ wc -l Compress_BinnedMeans_Params.txt
     20 Compress_BinnedMeans_Params.txt
 
 # run jobs
-sbatch --array=1-20%10 /scratch/hllab/Juan/General_Code/run_Batch_bgzip.sh Compress_BinnedMeans_Params.txt
+sbatch --array=1-20%10 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_bgzip.sh Compress_BinnedMeans_Params.txt
 Submitted batch job 9869238
 
 # clean up

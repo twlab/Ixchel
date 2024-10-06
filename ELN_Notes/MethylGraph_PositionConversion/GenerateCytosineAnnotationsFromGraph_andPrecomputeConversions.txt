@@ -12,17 +12,17 @@ eval $( spack load --sh py-numpy/i7mcgz4 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
 
-python3 /scratch/hllab/Juan/General_Code/extractCytosineAnnotationsFromGraphSegments.py Segments.TestGraph.gfa CG.Annotations.TestGraph.txt
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/extractCytosineAnnotationsFromGraphSegments.py Segments.TestGraph.gfa CG.Annotations.TestGraph.txt
 exit
 
 # Automated Generate annotations
-sbatch /scratch/hllab/Juan/General_Code/run_extractCytosineAnnotationsFromGraphSegments.sh Segments.TestGraph.gfa CG.Annotations.TestGraph.txt 
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_extractCytosineAnnotationsFromGraphSegments.sh Segments.TestGraph.gfa CG.Annotations.TestGraph.txt
 Submitted batch job 9701788
 
 
 
 ### Convert annotations to methylC
-sbatch /scratch/hllab/Juan/General_Code/run_convertSegmentToRef.sh CG.Annotations.TestGraph.txt RefOnly.Segments.TestGraph.pkl QueryOnly.Segments.TestGraph.pkl RefOnlySourceLinks.TestGraph.pkl CG.Annotations.methylC False TestGraph.UpstreamArray.pkl TestGraph.DownstreamArray.pkl DoubleAnchored.TestGraph.pkl
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_convertSegmentToRef.sh CG.Annotations.TestGraph.txt RefOnly.Segments.TestGraph.pkl QueryOnly.Segments.TestGraph.pkl RefOnlySourceLinks.TestGraph.pkl CG.Annotations.methylC False TestGraph.UpstreamArray.pkl TestGraph.DownstreamArray.pkl DoubleAnchored.TestGraph.pkl
 
 Submitted batch job 9702497
 # It seems to work!
@@ -43,7 +43,7 @@ split CG.Annotations.TestGraph.txt Split.CG.Annotations.TestGraph_ -l 5
 ##### Generate all annotations from real graph, convert them, and prepare for them to be used as lookups for the real .graph.methyl files
 ### Run extract annotations on real graph
 cd /scratch/hllab/Juan/methylGrapher/GraphFiles
-sbatch /scratch/hllab/Juan/General_Code/run_extractCytosineAnnotationsFromGraphSegments.sh Segments.GRCh38-f1g-90-mc-aug11.gfa C.Annotations.GRCh38-f1g-90-mc-aug11.txt
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_extractCytosineAnnotationsFromGraphSegments.sh Segments.GRCh38-f1g-90-mc-aug11.gfa C.Annotations.GRCh38-f1g-90-mc-aug11.txt
 
 Submitted batch job 9702503
 
@@ -82,7 +82,7 @@ cd /scratch/hllab/Juan/methylGrapher/GraphFiles
 paste <(echo "C.Annotations.GRCh38-f1g-90-mc-aug11.txt") <(echo "Split.C.Annotations.GRCh38-f1g-90-mc-aug11_") <(echo "1500000") >C.Annotation.Split.Params.txt
 
 # Split annotations
-sbatch /scratch/hllab/Juan/General_Code/run_Batch_Split_Files.sh C.Annotation.Split.Params.txt
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_Split_Files.sh C.Annotation.Split.Params.txt
 Submitted batch job 9712633
 
 # Cleanup
@@ -113,7 +113,7 @@ wc -l ConvertSplitFiles_Params.txt
 858 ConvertSplitFiles_Params.txt
 
 # run conversion of split files
-sbatch --array=1-858%20 /scratch/hllab/Juan/General_Code/run_Batch_convertSegmentToRef.sh ConvertSplitFiles_Params.txt
+sbatch --array=1-858%20 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_convertSegmentToRef.sh ConvertSplitFiles_Params.txt
 
 Submitted batch job 9712636
 
@@ -148,7 +148,7 @@ wc -l PicklePrecomputedPositionsHash_Params.txt
 858 PicklePrecomputedPositionsHash_Params.txt
 
 # run dict building and pickling of split files
-sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_PicklePrecomputedPositionsHash.sh PicklePrecomputedPositionsHash_Params.txt
+sbatch --array=1-858%40 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_PicklePrecomputedPositionsHash.sh PicklePrecomputedPositionsHash_Params.txt
 
 Submitted batch job 9747862
 
@@ -171,7 +171,7 @@ mv slurm-9747862_* Logs/PicklePrecomputedPositionsHash/
 paste <(find SplitAnnotations/ -type f -name "*.methylC") <(find SplitAnnotations/ -type f -name "*.methylC" | awk -F ".methylC" '{print $1".methylC_sorted_Keys.txt"}') >Generate_Converted_SegmentAndOffsetKeys_Params.txt
 
 # run sbatch script to generate sorted segment and offset keys for each split file
-sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_Generate_Converted_SegmentAndOffsetKeys.sh Generate_Converted_SegmentAndOffsetKeys_Params.txt
+sbatch --array=1-858%40 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_Generate_Converted_SegmentAndOffsetKeys.sh Generate_Converted_SegmentAndOffsetKeys_Params.txt
 
 Submitted batch job 9748755
 
@@ -204,7 +204,7 @@ cd /scratch/hllab/Juan/methylGrapher/GraphFiles/SplitAnnotations/
 paste <(find Converted_SegmentAndOffsetKeys/ -type f -name "*_converted.methylC_sorted_Keys.txt") <(find Converted_SegmentAndOffsetKeys/ -type f -name "*_converted.methylC_sorted_Keys.txt" | awk -F "/|_converted.methylC_sorted_Keys.txt" '{print $1"/converted.methylC_sorted_Keys_"$2}') >Rename_Converted_SegmentAndOffsetKeys_Params.txt
 
 # run sbatch script to rename split keys files
-sbatch --array=1-858%40 /scratch/hllab/Juan/General_Code/run_Batch_Move_Specific.sh Rename_Converted_SegmentAndOffsetKeys_Params.txt
+sbatch --array=1-858%40 /scratch/hllab/Juan/JuanMacias_General_Code/run_Batch_Move_Specific.sh Rename_Converted_SegmentAndOffsetKeys_Params.txt
 
 Submitted batch job 9750092
 
@@ -239,7 +239,7 @@ srun --mem=100000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bas
 cat SplitAnnotations/*_converted.methylC >Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC
 
 # Build and Pickle precomputed positions hash
-sbatch /scratch/hllab/Juan/General_Code/run_PicklePrecomputedPositionsHash.sh Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.pkl
+sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_PicklePrecomputedPositionsHash.sh Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.methylC Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_converted.pkl
 
 Submitted batch job 9746455
 
@@ -265,6 +265,6 @@ awk -F "\t" '{print $1}' ../Combined_Split.C.Annotations.GRCh38-f1g-90-mc-aug11_
 
 # This section will loop through each chromosome file and pass it into the PicklePrecomputedPositionsHash script
 # Don't forget to set it to the right amount of memory!
-for i in $(ls *.methylC); do sbatch /scratch/hllab/Juan/General_Code/run_PicklePrecomputedPositionsHash.sh $i $i.pkl; done
+for i in $(ls *.methylC); do sbatch /scratch/hllab/Juan/JuanMacias_General_Code/run_PicklePrecomputedPositionsHash.sh $i $i.pkl; done
 
 ##### GARBO

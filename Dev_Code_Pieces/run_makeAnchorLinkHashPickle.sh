@@ -16,6 +16,6 @@ OUTOUTPICKLE=$2
 DOUBLEANCHORPICKLEFILE=$3
 
 echo "Start conversion..."
-python3 /scratch/hllab/Juan/General_Code/makeAnchorLinkHashPickle.py $INPUTLINKSFILE $OUTOUTPICKLE $DOUBLEANCHORPICKLEFILE
+python3 /scratch/hllab/Juan/JuanMacias_General_Code/makeAnchorLinkHashPickle.py $INPUTLINKSFILE $OUTOUTPICKLE $DOUBLEANCHORPICKLEFILE
 
 echo "Complete!"
