@@ -651,8 +651,11 @@ def convertGraphMethylToMethylC(args):
     outputfile = os.path.splitext(graphmethylFile)[0] + ".methylc"
     print(f"Converting GraphMethyl file: {graphmethylFile} to MethylC format: {outputfile}")
 
+    # Determine if we're running in a Slurm batch job or an interactive session
+    interactive = os.isatty(sys.stdout.fileno())
+
     with open(graphmethylFile, 'r') as f, open(outputfile, 'w') as f_out:
-        for line in tqdm(f, desc="Converting GraphMethyl to MethylC", unit=" lines"):
+        for line in tqdm(f, desc="Converting GraphMethyl to MethylC", unit=" lines", disable=not interactive):
             L = line.strip().split()
             segmentID = L[0]
             segmentOffset = L[1]
