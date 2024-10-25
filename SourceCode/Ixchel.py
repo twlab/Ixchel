@@ -882,7 +882,7 @@ def main():
 
     parser_split = subparsers.add_parser('split_annotations_file', help='split annotations file into chunks')
     parser_split.add_argument('input', type=str, help='Annotations file to split')
-    parser_split.add_argument('--lines_per_chunk', type=int, help='number of lines per chunk', default=100000)
+    parser_split.add_argument('--lines_per_chunk', type=int, help='number of lines per chunk', default=10000000)
     parser_split.set_defaults(func=split_annotations_file)
 
     parser_precompute = subparsers.add_parser('precompute_conversion', help='precompute conversion')
