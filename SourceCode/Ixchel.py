@@ -547,9 +547,12 @@ def precompute_conversion(args):
         return ([STABLESOURCE, START, STOP, CONTEXT, METHYLATEDFRACTION, SENSE, COVERAGE, CONVERSIONCODE, SEGMENTID, SEGMENTOFFSET])
 
     print("... Starting conversion")
+    # Determine if we're running in a Slurm batch job or an interactive session
+    interactive = os.isatty(sys.stdout.fileno())
+
     with open(OutputFile, "w", buffering=1000000) as output:
         with open(AnnotationFile, "r") as input:
-            for line in tqdm(input, desc="Precomputing conversions", unit=" lines"):
+            for line in tqdm(input, desc="Precomputing conversions", unit=" lines", disable=not interactive):
                 if RefOnlyParam == "True":
                     output.write("\t".join([str(i) for i in pullRefOnlyCoords(line)]) + "\n")
                 else:
