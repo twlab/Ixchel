@@ -811,31 +811,31 @@ def prepareGraphFiles(args):
     args.input = f"Annotations.Segments.{gfafile}"
     split_annotations_file(args)
 
-    ### Precompute conversions - all
-    gfafileBase = os.path.splitext(gfafile)[0]
-    args.AnnotationFile = f"Annotations.Segments.{gfafile}"
-    args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
-    args.QuerySegmentsPickle = f"QueryOnly.Segments.{gfafileBase}.pkl"
-    args.LinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
-    args.RefOnlyParam = "False"
-    args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
-    args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
-    args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafileBase}.pkl"
-    print(f"\nPrecomputing conversion from {args.AnnotationFile} using {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
-    print(f"UpstreamOutputFile: {args.UpstreamOutputFile}")
-    print(f"DownstreamOutputFile: {args.DownstreamOutputFile}")
-    print(f"DoubleAnchorFile: {args.DoubleAnchorFile}")
-    precompute_conversion(args)
-
-    ### Build and serialize precomputed conversion dictionary
-    args.precomputedfile = f"Annotations.Segments.{gfafile}.converted"
-    print(f"\nSerializing precomputed conversion dictionary from {args.precomputedfile}")
-    SerializePrecomputedPositionsHash(args)
-
-    ### Post prep clean up function
-    args.input = f"{gfafile}"
-    print(f"\nCleaning up intermediate files from {args.input}")
-    postprepcleanup(args)
+    # ### Precompute conversions - all
+    # gfafileBase = os.path.splitext(gfafile)[0]
+    # args.AnnotationFile = f"Annotations.Segments.{gfafile}"
+    # args.ReferenceSegmentsPickle = f"RefOnly.Segments.{gfafileBase}.pkl"
+    # args.QuerySegmentsPickle = f"QueryOnly.Segments.{gfafileBase}.pkl"
+    # args.LinksPickle = f"FilteredLinks.Links.{gfafileBase}.pkl"
+    # args.RefOnlyParam = "False"
+    # args.UpstreamOutputFile = f"UpstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
+    # args.DownstreamOutputFile = f"DownstreamArray.RefOnly.Segments.{gfafileBase}.pkl"
+    # args.DoubleAnchorFile = f"DoubleAnchored.FilteredLinks.Links.{gfafileBase}.pkl"
+    # print(f"\nPrecomputing conversion from {args.AnnotationFile} using {args.ReferenceSegmentsPickle}, {args.QuerySegmentsPickle}, {args.LinksPickle}")
+    # print(f"UpstreamOutputFile: {args.UpstreamOutputFile}")
+    # print(f"DownstreamOutputFile: {args.DownstreamOutputFile}")
+    # print(f"DoubleAnchorFile: {args.DoubleAnchorFile}")
+    # precompute_conversion(args)
+    #
+    # ### Build and serialize precomputed conversion dictionary
+    # args.precomputedfile = f"Annotations.Segments.{gfafile}.converted"
+    # print(f"\nSerializing precomputed conversion dictionary from {args.precomputedfile}")
+    # SerializePrecomputedPositionsHash(args)
+    #
+    # ### Post prep clean up function
+    # args.input = f"{gfafile}"
+    # print(f"\nCleaning up intermediate files from {args.input}")
+    # postprepcleanup(args)
 
 def main():
     parser = argparse.ArgumentParser(description="Ixchel Tool for processing genome graphs")
