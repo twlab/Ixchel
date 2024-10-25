@@ -9,6 +9,7 @@ echo "... Loading software"
 eval $( spack load --sh /pudl6n3 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
 eval $( spack load --sh py-dill@0.3.4 )
+eval $( spack load --sh py-tqdm )
 
 echo "... Input precomputed file: $INPUTPRECOMPUTEDFILE"
 
