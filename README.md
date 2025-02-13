@@ -45,3 +45,5 @@ Context that affects how precisely the segment can be surjected to linear coordi
 ```bash
 python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertConversionCodes Example.CG.graph.methylc
 ```
+
+*For further support contact: juanfmacias[at]wustl.edu*
