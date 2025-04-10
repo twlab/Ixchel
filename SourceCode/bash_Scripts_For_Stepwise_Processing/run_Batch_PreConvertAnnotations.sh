@@ -17,9 +17,12 @@ echo "Double anchors file: "$DoubleAnchorsFile
 
 eval $( spack load --sh /pudl6n3 )
 eval $( spack load --sh py-numpy/i7mcgz4 )
+# py-jsonpickle@1.4.1
 eval $( spack load --sh py-jsonpickle@1.4.1 )
-eval $( spack load --sh py-dill@0.3.4 )
-eval $( spack load --sh py-tqdm )
+# py-dill@0.3.4
+eval $( spack load --sh py-dill/aldouqp )
+# py-tqdm
+eval $( spack load --sh py-tqdm/nfnho45 )
 
 echo "Start conversion..."
 python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py precompute_conversion $INPUTFILE $SEGMENTSPICKLE $QUERYSEGMENTSPICKLE $LINKSPICKLE $UpstreamLinksArrayFile $DownstreamLinksArrayFile $DoubleAnchorsFile
