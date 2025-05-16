@@ -14,6 +14,7 @@ import glob
 import shutil
 import sqlite3
 from tqdm import tqdm  # Progress bar library
+import uuid
 
 # Nested dictionary function
 def rec_dd():
@@ -161,43 +162,52 @@ def extract_links(args):
     print(f"Links extraction complete. Saved to {output_file}")
 
 def create_link_search_keys(refsegmentsfile):
-    search_keys_file = "temp_link_search_keys.txt"
-    seen = set()
-    print(f"... Creating search keys from {refsegmentsfile}")
+    # generate a unique temp filename
+    unique_suffix = uuid.uuid4().hex
+    search_keys_file = f"temp_link_search_keys_{unique_suffix}.txt"
+
+    print(f"... Creating search keys from {refsegmentsfile} into {search_keys_file}")
     if not os.path.exists(refsegmentsfile):
         print(f"Error: {refsegmentsfile} does not exist!")
         sys.exit(1)
+
+    seen = set()
     with open(refsegmentsfile, 'r') as infile:
         for line in tqdm(infile, desc="Generating search keys", unit=" lines"):
             if line.startswith('S'):
                 parts = line.split('\t')
                 if len(parts) > 1:
+                    # build the L-record key for grep
                     key = f"L\t{parts[1]}\t\n"
                     seen.add(key)
-    print(f"... Writing search keys to {search_keys_file}")
+
     with open(search_keys_file, 'w') as outfile:
         for key in sorted(seen):
             outfile.write(key)
+
+    return search_keys_file
 
 def filter_links(args):
     input_file = args.input
     refsegmentsfile = args.refsegmentsfile
     print(f"Filtering links from {input_file} using {refsegmentsfile}")
+
+    # create and use a unique search‐keys file
+    search_keys_file = create_link_search_keys(refsegmentsfile)
+
     output_file = f"FilteredLinks.{input_file}"
-    print(f"... Generating search keys")
-    create_link_search_keys(refsegmentsfile)
-    search_keys_file = "temp_link_search_keys.txt"
+    print(f"... Filtering links into {output_file}")
     with open(search_keys_file, 'r') as keys_file:
+        # each key line ends in "\t\n", so we strip then re-append a tab
         keys = set(line.strip() + "\t" for line in keys_file)
 
-    print(f"... Filtering links using search keys")
     with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
         for line in tqdm(infile, desc="Filtering links", unit=" lines"):
             search_term = "L\t" + line.split('\t')[1] + "\t"
             if search_term in keys:
                 outfile.write(line)
 
-    print(f"... Removing temporary search keys file")
+    # clean up our own temp file
     os.remove(search_keys_file)
     print(f"Links filtering complete. Saved to {output_file}")
 
