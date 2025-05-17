@@ -67,16 +67,22 @@ def convert_methyl_optimized(graph_methyl, db_file, output_file):
         for L in lines:
             F = L.rstrip("\n").split("\t")
             offset = F[1]
-            src, s, e, c = mapping.get(offset, ("NA", "NA", "NA", "NA"))
+            src, s, e, c = mapping.get(offset, (None, None, None, None))
+
+            # turn Python None → literal "NA"
+            s_out = s if s is not None else "NA"
+            e_out = e if e is not None else "NA"
+            c_out = c if c is not None else "NA"
+
             out = [
-                src,  # stable_source
-                s,  # start
-                e,  # stop
+                src if src is not None else "NA",  # stable_source
+                s_out,  # start
+                e_out,  # stop
                 F[3],  # context
                 F[7],  # methylatedFraction
                 F[2],  # strand
                 F[6],  # coverage
-                c,  # conversionCode
+                c_out,  # conversionCode
                 F[0],  # segmentID
                 offset  # segmentOffset
             ]
