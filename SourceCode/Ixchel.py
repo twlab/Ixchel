@@ -571,50 +571,50 @@ def precompute_conversion(args):
 
     print("Conversion complete")
 
-def SerializePrecomputedPositionsHash(args):
-    INPUTPRECOMPUTEDFILE = args.precomputedfile
-    base = os.path.splitext(INPUTPRECOMPUTEDFILE)[0]
-    OUTPUTDBFILE = base + ".db"
-
-    print('Reading in PreComputedPositionsFile')
-    conn = sqlite3.connect(OUTPUTDBFILE)
-    cursor = conn.cursor()
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS conversion (
-            segment_id TEXT,
-            segment_offset TEXT,
-            stable_source TEXT,
-            start INTEGER,
-            stop INTEGER,
-            conversion_code INTEGER,
-            PRIMARY KEY (segment_id, segment_offset)
-        )
-    ''')
-
-    with open(INPUTPRECOMPUTEDFILE, 'r') as PreComputedPositionsFile:
-        data = []
-        for line in tqdm(PreComputedPositionsFile, desc="Serializing positions", unit=" lines"):
-            line = line.strip().split('\t')
-            # Handle cases where the value is 'NA'
-            start = int(line[1]) if line[1] != 'NA' else None
-            stop = int(line[2]) if line[2] != 'NA' else None
-            conversion_code = int(line[7]) if line[7] != 'NA' else None
-
-            # Append the entry even if some values are None (NULL in SQL)
-            data.append((line[8], line[9], line[0], start, stop, conversion_code))
-
-            if len(data) % 1000000 == 0:
-                cursor.executemany('INSERT OR REPLACE INTO conversion VALUES (?, ?, ?, ?, ?, ?)', data)
-                conn.commit()
-                print(f'Processed {len(data)} lines so far.')
-                data = []
-
-        if data:
-            cursor.executemany('INSERT OR REPLACE INTO conversion VALUES (?, ?, ?, ?, ?, ?)', data)
-            conn.commit()
-
-    print("Serialization complete")
+# def SerializePrecomputedPositionsHash(args):
+#     INPUTPRECOMPUTEDFILE = args.precomputedfile
+#     base = os.path.splitext(INPUTPRECOMPUTEDFILE)[0]
+#     OUTPUTDBFILE = base + ".db"
+#
+#     print('Reading in PreComputedPositionsFile')
+#     conn = sqlite3.connect(OUTPUTDBFILE)
+#     cursor = conn.cursor()
+#
+#     cursor.execute('''
+#         CREATE TABLE IF NOT EXISTS conversion (
+#             segment_id TEXT,
+#             segment_offset TEXT,
+#             stable_source TEXT,
+#             start INTEGER,
+#             stop INTEGER,
+#             conversion_code INTEGER,
+#             PRIMARY KEY (segment_id, segment_offset)
+#         )
+#     ''')
+#
+#     with open(INPUTPRECOMPUTEDFILE, 'r') as PreComputedPositionsFile:
+#         data = []
+#         for line in tqdm(PreComputedPositionsFile, desc="Serializing positions", unit=" lines"):
+#             line = line.strip().split('\t')
+#             # Handle cases where the value is 'NA'
+#             start = int(line[1]) if line[1] != 'NA' else None
+#             stop = int(line[2]) if line[2] != 'NA' else None
+#             conversion_code = int(line[7]) if line[7] != 'NA' else None
+#
+#             # Append the entry even if some values are None (NULL in SQL)
+#             data.append((line[8], line[9], line[0], start, stop, conversion_code))
+#
+#             if len(data) % 1000000 == 0:
+#                 cursor.executemany('INSERT OR REPLACE INTO conversion VALUES (?, ?, ?, ?, ?, ?)', data)
+#                 conn.commit()
+#                 print(f'Processed {len(data)} lines so far.')
+#                 data = []
+#
+#         if data:
+#             cursor.executemany('INSERT OR REPLACE INTO conversion VALUES (?, ?, ?, ?, ?, ?)', data)
+#             conn.commit()
+#
+#     print("Serialization complete")
 
 def postprepcleanup(args):
     print("Cleaning up intermediate files")
@@ -650,48 +650,48 @@ def postprepcleanup(args):
             os.remove(file)
     print("Cleanup complete")
 
-def convertGraphMethylToMethylC(args):
-    precomputedfile = args.precomputedfile
-    if not os.path.exists(precomputedfile):
-        print(f"Error: {precomputedfile} does not exist.")
-        sys.exit(1)
-    conn = sqlite3.connect(precomputedfile)
-    cursor = conn.cursor()
-
-    graphmethylFile = args.input
-    if not os.path.exists(graphmethylFile):
-        print(f"Error: {graphmethylFile} does not exist.")
-        sys.exit(1)
-    outputfile = os.path.splitext(graphmethylFile)[0] + ".methylc"
-    print(f"Converting GraphMethyl file: {graphmethylFile} to MethylC format: {outputfile}")
-
-    # Determine if we're running in a Slurm batch job or an interactive session
-    interactive = os.isatty(sys.stdout.fileno())
-
-    with open(graphmethylFile, 'r') as f, open(outputfile, 'w') as f_out:
-        for line in tqdm(f, desc="Converting GraphMethyl to MethylC", unit=" lines", disable=not interactive):
-            L = line.strip().split()
-            segmentID = L[0]
-            segmentOffset = L[1]
-            strand = L[2]
-            context = L[3]
-            coverage = L[6]
-            methylatedFraction = L[7]
-            cursor.execute('''
-                SELECT stable_source, start, stop, conversion_code 
-                FROM conversion 
-                WHERE segment_id = ? AND segment_offset = ?
-            ''', (segmentID, segmentOffset))
-            result = cursor.fetchone()
-
-            if result:
-                stableSource, start, stop, conversionCode = result
-                f_out.write(f"{stableSource}\t{start}\t{stop}\t{context}\t{methylatedFraction}\t{strand}\t{coverage}\t{segmentID}:{segmentOffset}\t{conversionCode}\n")
-            else:
-                f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\t{segmentID}:{segmentOffset}\tNA\n")
-
-    conn.close()
-    print(f"Conversion to MethylC format complete. Saved to {outputfile}")
+# def convertGraphMethylToMethylC(args):
+#     precomputedfile = args.precomputedfile
+#     if not os.path.exists(precomputedfile):
+#         print(f"Error: {precomputedfile} does not exist.")
+#         sys.exit(1)
+#     conn = sqlite3.connect(precomputedfile)
+#     cursor = conn.cursor()
+#
+#     graphmethylFile = args.input
+#     if not os.path.exists(graphmethylFile):
+#         print(f"Error: {graphmethylFile} does not exist.")
+#         sys.exit(1)
+#     outputfile = os.path.splitext(graphmethylFile)[0] + ".methylc"
+#     print(f"Converting GraphMethyl file: {graphmethylFile} to MethylC format: {outputfile}")
+#
+#     # Determine if we're running in a Slurm batch job or an interactive session
+#     interactive = os.isatty(sys.stdout.fileno())
+#
+#     with open(graphmethylFile, 'r') as f, open(outputfile, 'w') as f_out:
+#         for line in tqdm(f, desc="Converting GraphMethyl to MethylC", unit=" lines", disable=not interactive):
+#             L = line.strip().split()
+#             segmentID = L[0]
+#             segmentOffset = L[1]
+#             strand = L[2]
+#             context = L[3]
+#             coverage = L[6]
+#             methylatedFraction = L[7]
+#             cursor.execute('''
+#                 SELECT stable_source, start, stop, conversion_code
+#                 FROM conversion
+#                 WHERE segment_id = ? AND segment_offset = ?
+#             ''', (segmentID, segmentOffset))
+#             result = cursor.fetchone()
+#
+#             if result:
+#                 stableSource, start, stop, conversionCode = result
+#                 f_out.write(f"{stableSource}\t{start}\t{stop}\t{context}\t{methylatedFraction}\t{strand}\t{coverage}\t{segmentID}:{segmentOffset}\t{conversionCode}\n")
+#             else:
+#                 f_out.write(f"NA\tNA\tNA\tNA\tNA\tNA\tNA\t{segmentID}:{segmentOffset}\tNA\n")
+#
+#     conn.close()
+#     print(f"Conversion to MethylC format complete. Saved to {outputfile}")
 
 def convertConversionCodeSingle(args):
     conversionCode = args.conversioncode
@@ -771,6 +771,98 @@ def convertConversionCodes(args):
                 conversionCode -= 1
             f_out.write(f"{chromosome}\t{start}\t{stop}\t{L[8]}\t{isReferenceFlag}\t{hasAnchorFlag}\t{lengthFlag}\t{lengthMatchFlag}\t{hasMultipleAnchorsFlag}\t{isQueryFlag}\t{generalErrorFlag}\n")
     print(f"Conversion codes processing complete. Saved to {outputfile}")
+
+
+def build_db(precomputed_file, db_file, batch_size):
+    """Bulk-load the .converted file into SQLite with tuned pragmas."""
+    print(f"[build_db] opening {db_file}")
+    conn = sqlite3.connect(db_file)
+    conn.execute("PRAGMA synchronous = OFF;")
+    conn.execute("PRAGMA journal_mode = MEMORY;")
+    conn.execute("PRAGMA temp_store = MEMORY;")
+    conn.execute("PRAGMA locking_mode = EXCLUSIVE;")
+    conn.execute("BEGIN;")
+
+    insert_sql = (
+        "INSERT OR REPLACE INTO conversion "
+        "(segment_id, segment_offset, stable_source, start, stop, conversion_code) "
+        "VALUES (?, ?, ?, ?, ?, ?)"
+    )
+    batch = []
+    count = 0
+
+    with open(precomputed_file, 'r') as fin:
+        for line in fin:
+            F = line.rstrip("\n").split("\t")
+            start = None if F[1] == 'NA' else int(F[1])
+            stop  = None if F[2] == 'NA' else int(F[2])
+            code  = None if F[7] == 'NA' else int(F[7])
+            batch.append((F[8], F[9], F[0], start, stop, code))
+            count += 1
+            if count % batch_size == 0:
+                conn.executemany(insert_sql, batch)
+                conn.commit()
+                print(f"  inserted {count} rows so far")
+                batch.clear()
+
+    if batch:
+        conn.executemany(insert_sql, batch)
+        conn.commit()
+        print(f"  inserted total {count} rows")
+
+    conn.close()
+    print("[build_db] complete")
+
+
+def convert_methyl_optimized(graph_methyl, db_file, output_file):
+    """Stream through .graph.methyl, group by segment, and do in-RAM lookups."""
+    print(f"[convert] opening DB {db_file} in WAL mode")
+    conn = sqlite3.connect(db_file, check_same_thread=False)
+    conn.execute("PRAGMA journal_mode = WAL;")
+    cursor = conn.cursor()
+
+    def flush_segment(seg_id, lines, fout):
+        cursor.execute(
+            "SELECT segment_offset, stable_source, start, stop, conversion_code "
+            "FROM conversion WHERE segment_id = ?", (seg_id,)
+        )
+        mapping = {off: (src, s, e, c) for off, src, s, e, c in cursor.fetchall()}
+        for L in lines:
+            F = L.rstrip("\n").split("\t")
+            off = F[1]
+            src, s, e, c = mapping.get(off, (None, None, None, None))
+            out = [
+                src or "NA",
+                s if s is not None else "NA",
+                e if e is not None else "NA",
+                F[3],  # context
+                F[7],  # methylatedFraction
+                F[2],  # strand
+                F[6],  # coverage
+                c if c is not None else "NA",
+                F[0],  # segmentID
+                off
+            ]
+            fout.write("\t".join(map(str, out)) + "\n")
+
+    with open(graph_methyl) as fin, open(output_file, 'w') as fout:
+        current_seg = None
+        buffer = []
+        for line in fin:
+            seg = line.split("\t", 1)[0]
+            if seg != current_seg:
+                if buffer:
+                    flush_segment(current_seg, buffer, fout)
+                current_seg = seg
+                buffer = [line]
+            else:
+                buffer.append(line)
+        if buffer:
+            flush_segment(current_seg, buffer, fout)
+
+    conn.close()
+    print(f"[convert] done, output → {output_file}")
+
 
 def prepareGraphFiles(args):
     gfafile = args.input
@@ -907,9 +999,9 @@ def main():
     parser_precompute.add_argument('DoubleAnchorFile', type=str, help='DoubleAnchorFile')
     parser_precompute.set_defaults(func=precompute_conversion)
 
-    parser_pickle = subparsers.add_parser('SerializePrecomputedPositionsHash', help='serialize precomputed positions hash')
-    parser_pickle.add_argument('precomputedfile', type=str, help='Precomputed positions file to serialize')
-    parser_pickle.set_defaults(func=SerializePrecomputedPositionsHash)
+    # parser_pickle = subparsers.add_parser('SerializePrecomputedPositionsHash', help='serialize precomputed positions hash')
+    # parser_pickle.add_argument('precomputedfile', type=str, help='Precomputed positions file to serialize')
+    # parser_pickle.set_defaults(func=SerializePrecomputedPositionsHash)
 
     parser_cleanup = subparsers.add_parser('post_prep_cleanup', help='post prep cleanup')
     parser_cleanup.add_argument('input', type=str, help='GFA file to clean up')
@@ -921,10 +1013,10 @@ def main():
     parser_prepareGraphFiles.add_argument('--lines_per_chunk', type=int, help='number of lines per chunk', default=1000000)
     parser_prepareGraphFiles.set_defaults(func=prepareGraphFiles)
 
-    parser_convertGraphMethylToMethylC = subparsers.add_parser('convertGraphMethylToMethylC', help='convert .graph.methyl file to .methylC')
-    parser_convertGraphMethylToMethylC.add_argument('input', type=str, help='.graph.methyl file to convert')
-    parser_convertGraphMethylToMethylC.add_argument('precomputedfile', type=str, help='serialized (.db) precomputed conversion dictionary file')
-    parser_convertGraphMethylToMethylC.set_defaults(func=convertGraphMethylToMethylC)
+    # parser_convertGraphMethylToMethylC = subparsers.add_parser('convertGraphMethylToMethylC', help='convert .graph.methyl file to .methylC')
+    # parser_convertGraphMethylToMethylC.add_argument('input', type=str, help='.graph.methyl file to convert')
+    # parser_convertGraphMethylToMethylC.add_argument('precomputedfile', type=str, help='serialized (.db) precomputed conversion dictionary file')
+    # parser_convertGraphMethylToMethylC.set_defaults(func=convertGraphMethylToMethylC)
 
     parser_convertConversionCode = subparsers.add_parser('convertConversionCodeSingle', help='convert single conversion code to flags\nthis is experimental still')
     parser_convertConversionCode.add_argument('conversioncode', type=int, help='conversion code to convert')
@@ -933,6 +1025,65 @@ def main():
     parser_convertConversionCodes = subparsers.add_parser('convertConversionCodes', help='convert all conversion codes in a .methylC file to flags\nthis is experimental and should not be used')
     parser_convertConversionCodes.add_argument('input', type=str, help='.methylC file to convert')
     parser_convertConversionCodes.set_defaults(func=convertConversionCodes)
+
+    # Optimizations:
+    parser_build = subparsers.add_parser(
+        'build_db',
+        help='bulk-load a precomputed .converted file into a SQLite DB'
+    )
+    parser_build.add_argument(
+        'precomputed_file',
+        help='Annotations.*.converted file'
+    )
+    parser_build.add_argument(
+        'db_file',
+        help='output SQLite DB (e.g. Annotations.chr19.converted.db)'
+    )
+    parser_build.add_argument(
+        '--batch',
+        type=int,
+        default=5000000,
+        help='number of rows per insert batch'
+    )
+    parser_build.set_defaults(func=lambda args: (
+        # ensure conversion table exists
+        sqlite3.connect(args.db_file)
+               .execute("""CREATE TABLE IF NOT EXISTS conversion (
+                   segment_id TEXT,
+                   segment_offset TEXT,
+                   stable_source TEXT,
+                   start INTEGER,
+                   stop INTEGER,
+                   conversion_code INTEGER,
+                   PRIMARY KEY(segment_id, segment_offset)
+               )""")
+               .connection.close(),
+        build_db(args.precomputed_file, args.db_file, args.batch)
+    ))
+
+    parser_convert_opt = subparsers.add_parser(
+        'convert_methyl_optimized',
+        help='fast convert sorted .graph.methyl to .methylC'
+    )
+    parser_convert_opt.add_argument(
+        'graph_methyl',
+        help='sorted .graph.methyl (sort -t$\'\\t\' -k1,1 -k2,2n)'
+    )
+    parser_convert_opt.add_argument(
+        'db_file',
+        help='SQLite DB built by build_db'
+    )
+    parser_convert_opt.add_argument(
+        'output_file',
+        help='output .methylC file'
+    )
+    parser_convert_opt.set_defaults(func=lambda args:
+        convert_methyl_optimized(
+            args.graph_methyl,
+            args.db_file,
+            args.output_file
+        )
+    )
 
     args = parser.parse_args()
     if not hasattr(args, 'func'):
