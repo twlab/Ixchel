@@ -64,11 +64,22 @@ def convert_methyl_optimized(graph_methyl, db_file, output_file):
             "FROM conversion WHERE segment_id = ?", (seg_id,)
         )
         mapping = {offset: (src, s, e, c) for offset, src, s, e, c in cursor.fetchall()}
-        for L in lines:
+        for L in segment_lines:
             F = L.rstrip("\n").split("\t")
             offset = F[1]
             src, s, e, c = mapping.get(offset, ("NA", "NA", "NA", "NA"))
-            out = [src, s, e, F[3], F[7], F[2], F[6], f"{F[0]}:{offset}", c]
+            out = [
+                src,  # stable_source
+                s,  # start
+                e,  # stop
+                F[3],  # context
+                F[7],  # methylatedFraction
+                F[2],  # strand
+                F[6],  # coverage
+                c,  # conversionCode
+                F[0],  # segmentID
+                offset  # segmentOffset
+            ]
             fout.write("\t".join(map(str, out)) + "\n")
 
     with open(graph_methyl, 'r') as fin, open(output_file, 'w') as fout:
