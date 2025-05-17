@@ -1062,7 +1062,7 @@ def main():
     ))
 
     parser_convert_opt = subparsers.add_parser(
-        'convert_methyl_optimized',
+        'convertGraphMethylToMethylC',
         help='fast convert sorted .graph.methyl to .methylC'
     )
     parser_convert_opt.add_argument(
