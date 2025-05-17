@@ -15,6 +15,7 @@ import shutil
 import sqlite3
 from tqdm import tqdm  # Progress bar library
 import uuid
+import itertools
 
 # Nested dictionary function
 def rec_dd():
