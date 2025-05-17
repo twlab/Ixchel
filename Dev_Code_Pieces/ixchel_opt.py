@@ -64,7 +64,7 @@ def convert_methyl_optimized(graph_methyl, db_file, output_file):
             "FROM conversion WHERE segment_id = ?", (seg_id,)
         )
         mapping = {offset: (src, s, e, c) for offset, src, s, e, c in cursor.fetchall()}
-        for L in segment_lines:
+        for L in lines:
             F = L.rstrip("\n").split("\t")
             offset = F[1]
             src, s, e, c = mapping.get(offset, ("NA", "NA", "NA", "NA"))
