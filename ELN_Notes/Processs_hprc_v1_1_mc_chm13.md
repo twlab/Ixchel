@@ -554,6 +554,8 @@ tar -cvzf Preprocessing_Intermediate_Files.tar.gz Preprocessing_Intermediate_Fil
 exit
 ```
 ```console
+...
+Preprocessing_Intermediate_Files/Links.chr5.rgfa
 Preprocessing_Intermediate_Files/Segments.chr11.rgfa
 Preprocessing_Intermediate_Files/Segments.chr8.rgfa
 Preprocessing_Intermediate_Files/QueryOnly.Segments.chr10.rgfa
@@ -565,8 +567,6 @@ Preprocessing_Intermediate_Files/UpstreamArray.RefOnly.Segments.chr10.pkl
 Preprocessing_Intermediate_Files/Links.chr2.rgfa
 Preprocessing_Intermediate_Files/QueryOnly.Segments.chr11.pkl
 ```
---- CLEANUP PAUSED HERE ---
-
 
 ## prepare lookups
 ### Cat the split_conversions
