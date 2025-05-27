@@ -628,13 +628,19 @@ sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Pangenomic/run_Ixchel_Build_D
 ```console
 Submitted batch job 22933394
 ```
---- PAUSED HERE ---
 #### Check the status of the jobs
 ```bash
 cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
 bash /scratch/hllab/Juan/JuanMacias_General_Code/Job_Management/run_check_jobs_with_reportseff.sh 22933394
 ```
 ```console
+Efficiency report for job ID: 22933394
+
+     JobID    State       Elapsed  TimeEff   CPUEff   MemEff 
+  22933394  COMPLETED    02:38:29   1.6%     65.7%    31.8%
+
+Log lengths:
+258 slurm-22933394.out
 ```
 ### Cleanup
 ```bash
@@ -651,7 +657,3 @@ exit
 ```
 
 The `Annotations.converted.db` is the main file needed for the conversion process.
-
-
-
-
