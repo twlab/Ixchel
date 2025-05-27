@@ -2,6 +2,8 @@
 Here I will describe the proecss of preparing the `hprc_v1_1_mc_chm13` graph for surjection of methylGrapher data.
 Ixchel pre-processing needs to be done per chromosome. The per-chromosome graph files are available [here](https://s3-us-west-2.amazonaws.com/human-pangenomics/index.html?prefix=pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.chroms)
 
+This is using `version v1.60.0 "Annicco` of vg
+
 ## Setup working directory
 ```bash
 cd /scratch/hllab/Juan/Ixchel_Dev_Tests/
@@ -15,6 +17,7 @@ cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
 
 srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
 
+# Using latest awscli from spack
 eval $( spack load --sh awscli )
 
 aws s3 sync s3://human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.chroms ./vg_files --no-sign-request --exclude "*" --include "*.vg"
@@ -239,6 +242,7 @@ sbatch --array=1-24%24 --mem=12000 /scratch/hllab/Juan/JuanMacias_General_Code/P
 Submitted batch job 22931813
 ```
 #### Check the status of the jobs
+This is a step I do tailored to my compute environment; it is not essential for the process to work.
 ```bash
 cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
 bash /scratch/hllab/Juan/JuanMacias_General_Code/Job_Management/run_check_jobs_with_reportseff.sh 22931813 | cat
@@ -651,8 +655,8 @@ mkdir -p Logs/Build_DB
 mv slurm-*.out Logs/Build_DB/
 
 # compress `Annotations.converted`
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-gzip Annotations.converted
+srun --mem=16000 --cpus-per-task=8 -J interactive -p interactive --pty /bin/bash -l
+pigz Annotations.converted
 exit
 ```
 
