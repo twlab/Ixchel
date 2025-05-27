@@ -24,16 +24,16 @@ lookup databases needed to run Ixchel can be found [here](BLANK). These are comp
 ## Overview of Ixchel process
 ```mermaid
 flowchart TB
-    GenomeGraph --> Step1["pre-prepare graph files"]
+    GenomeGraph --> Step1["S1. pre-prepare graph files"]
     Step1 --> Chromgraph["Per-chromosome Genome-graph (rGFA)"]
-    Chromgraph --> IxchelPrep["Ixchel prepareGraphFiles"]
-    IxchelPrep --> GraphFiles["Pre-computed conversion files"]
-    GraphFiles --> Ixchelbuild_db["4) Ixchel build_db"]
+    Chromgraph --> IxchelPrep["S2. Ixchel prepareGraphFiles"]
+    IxchelPrep --> GraphFiles["S3. Pre-computed conversion files"]
+    GraphFiles --> Ixchelbuild_db["S4. Ixchel build_db"]
     Ixchelbuild_db --> LookupDB["Conversion database (.db)"]
-    LookupDB --> IxchelSurject["5) Ixchel convertGraphMethylToMethylC"]
+    LookupDB --> IxchelSurject["S5. Ixchel convertGraphMethylToMethylC"]
     Annotations["Annotations to convert (.graph.methyl)"] --> IxchelSurject
     IxchelSurject --> SurjectedAnnotations["Surjected annotations (.methylC)"]
-    SurjectedAnnotations --> IxchelInterpretCodes["3) Ixchel convertConversionCodes"]
+    SurjectedAnnotations --> IxchelInterpretCodes["Ixchel convertConversionCodes"]
     IxchelInterpretCodes --> ExpandedCodes["Expanded conversion codes"]
     
     classDef default fill:#fff,stroke:#333,stroke-width:4px,color:black;
