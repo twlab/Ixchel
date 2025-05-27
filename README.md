@@ -24,8 +24,8 @@ lookup databases needed to run Ixchel can be found [here](BLANK). These are comp
 ## Overview of Ixchel process
 ```mermaid
 flowchart TB
-    GenomeGraph --> Genomegraph["1) pre-prepare graph files"]
-    Genomegraph --> Chromgraph["Per-chromosome Genome-graph (rGFA)"]
+    GenomeGraph --> Step1["1) pre-prepare graph files"]
+    Step1 --> Chromgraph["Per-chromosome Genome-graph (rGFA)"]
     Chromgraph --> IxchelPrep["2) Ixchel prepareGraphFiles"]
     IxchelPrep --> GraphFiles["3) Pre-computed conversion files"]
     GraphFiles --> Ixchelbuild_db["4) Ixchel build_db"]
