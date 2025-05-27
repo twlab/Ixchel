@@ -658,6 +658,13 @@ mv slurm-*.out Logs/Build_DB/
 srun --mem=16000 --cpus-per-task=8 -J interactive -p interactive --pty /bin/bash -l
 pigz Annotations.converted
 exit
+
+cp Annotations.converted.db HPRC_v1_1_mc_CHM14_Annotations.converted.db
+
+# compress database that will be made available
+srun --mem=16000 --cpus-per-task=8 -J interactive -p interactive --pty /bin/bash -l
+pigz HPRC_v1_1_mc_CHM14_Annotations.converted.db
+exit
 ```
 
 The `Annotations.converted.db` is the main file needed for the conversion process.
