@@ -19,12 +19,13 @@ A step-by-step example of how I have prepared a such a graph starting from `.vg`
 
 links to split versions of HPRC graphs can be found [here](https://github.com/human-pangenomics/hpp_pangenome_resources).
 
-lookup databases needed to run Ixchel can be found [here](BLANK)
+lookup databases needed to run Ixchel can be found [here](BLANK). These are compressed files files and must be uncompressed before running Ixchel.
 
 ## Overview of Ixchel process
 ```mermaid
 flowchart TB
-    Genomegraph["1) pre-prepare graph files"] --> Chromgraph["Per-chromosome Genome-graph (rGFA)"]
+    GenomeGraph --> Genomegraph["1) pre-prepare graph files"]
+    Genomegraph --> Chromgraph["Per-chromosome Genome-graph (rGFA)"]
     Chromgraph --> IxchelPrep["2) Ixchel prepareGraphFiles"]
     IxchelPrep --> GraphFiles["3) Pre-computed conversion files"]
     GraphFiles --> Ixchelbuild_db["4) Ixchel build_db"]
@@ -66,7 +67,6 @@ python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py precompute_conversion sp
 ```bash
 python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py build_db split_annotations/Annotations.Segments.TestGraph__00001.converted Annotations.Segments.TestGraph__00001.converted.db
 ```
-
 ### Convert GraphMethyl to MethylC
 ```bash
 python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertGraphMethylToMethylC Example.CG.graph.methyl Annotations.Segments.TestGraph__00001.converted.db Example.CG.graph.methyl.methylC
