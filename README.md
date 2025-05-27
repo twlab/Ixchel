@@ -39,7 +39,7 @@ flowchart TB
 ```
 
 ## Run Ixchel end-to-end
-Ixchel requires a genome graph in GFA format. It was designed to work with graphs produced by minigraph-cactus and is compatible with the human pangenomes available [here](https://github.com/human-pangenomics/hpp_pangenome_resources).
+Ixchel requires a genome graph in rGFA format. It was designed to work with graphs produced by minigraph-cactus and is compatible with the human pangenomes available [here](https://github.com/human-pangenomics/hpp_pangenome_resources). However, for large graphs the following simple example will not work well.
 It is run in two steps:
 1. Prepare the graph files
 2. Convert the graph.methyl annotations to methylC format
@@ -49,21 +49,33 @@ srun --mem=8000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash 
 eval $( spack load --sh python@3.7.3 )
 eval $( spack load --sh py-numpy/i7mcgz4 )
 eval $( spack load --sh py-jsonpickle@1.4.1 )
-eval $( spack load --sh py-dill@0.3.4 )
+# py-dill@0.3.4
+eval $( spack load --sh py-dill/aldouqp )
+# py-tqdm@4.65.0
+eval $( spack load --sh py-tqdm/nfnho45 )
 ```
 ### Prepare the graph files
 ```bash
-python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py prepareGraphFiles TestGraph.gfa
+python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py prepareGraphFiles TestGraph.gfa --reference_name GRCh38
 ```
+### Precompute conversion files
+````bash
+python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py precompute_conversion split_annotations/Annotations.Segments.TestGraph__00001 RefOnly.Segments.TestGraph.pkl QueryOnly.Segments.TestGraph.pkl FilteredLinks.Links.TestGraph.pkl UpstreamArray.RefOnly.Segments.TestGraph.pkl DownstreamArray.RefOnly.Segments.TestGraph.pkl DoubleAnchored.FilteredLinks.Links.TestGraph.pkl
+````
+### Build the surjection database
+```bash
+python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py build_db split_annotations/Annotations.Segments.TestGraph__00001.converted Annotations.Segments.TestGraph__00001.converted.db
+```
+
 ### Convert GraphMethyl to MethylC
 ```bash
-python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertGraphMethylToMethylC Example.CG.graph.methyl Annotations.Segments.TestGraph.gfa.pkl
+python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertGraphMethylToMethylC Example.CG.graph.methyl Annotations.Segments.TestGraph__00001.converted.db Example.CG.graph.methyl.methylC
 ```
 ### Extract and interpret codes
 Ixchel uses a set of codes to represent the context of segments in the graph.
 Context that affects how precisely the segment can be surjected to linear coordinates.
 ```bash
-python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertConversionCodes Example.CG.graph.methylc
+python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertConversionCodes Example.CG.graph.methyl.methylC
 ```
 
 *For further support contact: juanfmacias[at]wustl.edu*
