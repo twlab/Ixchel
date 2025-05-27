@@ -2,15 +2,35 @@
 Ixchel is a genome-graph based tool intended to aid in the conversion of annotations in graph-coordinates to linear coordinates.
 It is early in development and currently only has functionality designed for surjecting annotations (.graph.methyl) data for CpG sites.
 Currently, it only works with CpG sites, but the goal is to expand it to other types of annotations.
-Given the tremendous size of genomes, the steps will likely need to be run individually on a cluster.
+
+The main steps of the Ixchel process are:
+1. Pre-prepare the graph files: The graph must be split by chromosome and be in rGFA format.
+2. Prepare the graph files: This step takes the rGFA graph and generates a set of intermediate files needed to pre-compute conversions.
+3. Precompute conversion files: This step generates pre-computed conversion files that will be used in the surjection process.
+4. Build the surjection database: This step creates a database that maps the graph coordinates to linear coordinates.
+5. Convert GraphMethyl to MethylC: This step converts the annotations in graph coordinates to methylC format.
+
+Given the tremendous size of genomes, the steps will likely need to be run individually on a cluster. I will be providing pre-computed conversion files for the human pangenome. So the average use will start at step 5, as I will have run steps 1-4 for you for all stable releases of the human pangenome.
+
+If you want to run it on your own graph, you will need to prepare the graph files first. Due to resource constraints, pre-computed conversions *must* be performed per-chromosome. I strongly recommend against trying to run this on the entire genome at once.
+Splitting graphs can be done using `vg chunk` if the MC workflow wasn't set to split the graph by chromosome. I strongly recommend having the MC workflow split the graph by chromosome rather than trying to split it after the fact.
+Once the graph files are split per-chromosome, they are typically in `.vg` format. This must be converted to `.gfa` format, however `Ixchel` specifically requires the graph to be in rGFA format. It will fail to convert anything if it is not in rGFA format.
+A step-by-step example of how I have prepared a such a graph starting from `.vg` files can be found [here](ELN_Notes/Processs_hprc_v1_1_mc_chm13.md).
+
+links to split versions of HPRC graphs can be found [here](https://github.com/human-pangenomics/hpp_pangenome_resources).
+
+lookup databases needed to run Ixchel can be found [here](BLANK)
 
 ## Overview of Ixchel process
 ```mermaid
 flowchart TB
-    Genomegraph["Genome-graph (.GFA)"] --> IxchelPrep["1) Ixchel prepareGraphFiles"]
-    IxchelPrep --> GraphFiles["Pre-computed conversion files"]
-    GraphFiles --> IxchelSurject["2) Ixchel convertGraphMethylToMethylC"]
-    Annotations["Annotations (.graph.methyl)"] --> IxchelSurject
+    Genomegraph["1) pre-prepare graph files"] --> Chromgraph["Per-chromosome Genome-graph (rGFA)"]
+    Chromgraph --> IxchelPrep["2) Ixchel prepareGraphFiles"]
+    IxchelPrep --> GraphFiles["3) Pre-computed conversion files"]
+    GraphFiles --> Ixchelbuild_db["4) Ixchel build_db"]
+    Ixchelbuild_db --> LookupDB["Conversion database (.db)"]
+    LookupDB --> IxchelSurject["5) Ixchel convertGraphMethylToMethylC"]
+    Annotations["Annotations to convert (.graph.methyl)"] --> IxchelSurject
     IxchelSurject --> SurjectedAnnotations["Surjected annotations (.methylC)"]
     SurjectedAnnotations --> IxchelInterpretCodes["3) Ixchel convertConversionCodes"]
     IxchelInterpretCodes --> ExpandedCodes["Expanded conversion codes"]
@@ -44,94 +64,6 @@ Ixchel uses a set of codes to represent the context of segments in the graph.
 Context that affects how precisely the segment can be surjected to linear coordinates.
 ```bash
 python3 /scratch/hllab/Juan/Ixchel/SourceCode/Ixchel.py convertConversionCodes Example.CG.graph.methylc
-```
-
-# More details
-```mermaid
-flowchart TB
-  %%=== CLI Dispatch ===%%
-  subgraph CLI["Ixchel.py CLI"]
-    direction TB
-    ES(extract_segments)
-    EA(extract_annotations)
-    SS(split_segments)
-    MRP(makeRefSegmentHashlePickle)
-    MQP(makeQuerySegmentHashPickle)
-    XL(extract_links)
-    FL(filter_links)
-    MA(makeAnchorLinkHashPickle)
-    ML(makeLinkArrayPickles)
-    SA(split_annotations_file)
-    PC(precompute_conversion)
-    SPH(SerializePrecomputedPositionsHash)
-    PCU(postprepcleanup)
-    CGM(convertGraphMethylToMethylC)
-    CCS(convertConversionCodeSingle)
-    CCC(convertConversionCodes)
-    PGP(prepareGraphFiles)
-    BDB(build_db)
-    CMO(convert_methyl_optimized)
-  end
-
-  %%=== PrepareGraphFiles sequence ===%%
-  subgraph Prepare["prepareGraphFiles ➔"]
-    direction LR
-    ES2(extract_segments) --> EA2(extract_annotations) --> SS2(split_segments)
-    SS2 --> MQP2(makeQuerySegmentHashlePickle) --> MRP2(makeRefSegmentHashlePickle)
-    MRP2 --> XL2(extract_links) --> FL2(filter_links)
-    FL2 --> MA2(makeAnchorLinkHashlePickle) --> ML2(makeLinkArrayPickles)
-    ML2 --> SA2(split_annotations_file)
-  end
-  PGP --> Prepare
-
-  %%=== Precompute Conversion internals ===%%
-  subgraph PreComp["precompute_conversion ➔"]
-    direction TB
-    PRC[pullRefOnlyCoords]  
-    PAC[pullAllCoords]
-    CFC[convertFlagsToFlagCode]
-    PRC & PAC & CFC --> PC
-  end
-
-  %%=== Original Serialize vs Optimized Build ===%%
-  SPH -->|row-by-row| SQL0[(conversion table)]
-  BDB -->|bulk INSERT| SQL1[(conversion table)]
-
-  %%=== Convert GraphMethyl ===%%
-  subgraph ConvOLD["convertGraphMethylToMethylC (old)"]
-    direction TB
-    CGM --> SQL2["SELECT per record"]
-    SQL2 --> CGM
-  end
-
-  subgraph ConvOPT["convert_methyl_optimized (new)"]
-    direction TB
-    CMO --> GroupSegs[group by segment]
-    GroupSegs --> SQL3["SELECT per segment"]
-    SQL3 --> Dict[mapping: offset→tuple]
-    Dict --> CMO
-  end
-
-  %%=== CLI connections ===%%
-  CLI --> ES
-  CLI --> EA
-  CLI --> SS
-  CLI --> MRP
-  CLI --> MQP
-  CLI --> XL
-  CLI --> FL
-  CLI --> MA
-  CLI --> ML
-  CLI --> SA
-  CLI --> PC
-  CLI --> SPH
-  CLI --> PCU
-  CLI --> CGM
-  CLI --> CCS
-  CLI --> CCC
-  CLI --> PGP
-  CLI --> BDB
-  CLI --> CMO
 ```
 
 *For further support contact: juanfmacias[at]wustl.edu*
