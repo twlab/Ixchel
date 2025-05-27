@@ -494,26 +494,25 @@ sbatch  --array=1-1271%175 --mem=12G /scratch/hllab/Juan/Ixchel/SourceCode/bash_
 ```console
 Submitted batch job 22931867
 ```
---- PAUSED HERE ---
 ### Check the status of the jobs
 ```bash
 cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
 bash /scratch/hllab/Juan/JuanMacias_General_Code/Job_Management/run_check_jobs_with_reportseff.sh -s 22931867
 ```
 ```console
-Efficiency report for job ID: 22852456
+Efficiency report for job ID: 22931867
 
 States:
-  COMPLETED: 1246
+  COMPLETED: 1271
 
 Metric          min     max     mean    stddev
-Elapsed(min)    0.13    139.70  38.22   28.55
-TimeEff(%)      0.0     1.4     0.38    0.29
-CPUEff(%)       63.0    99.7    98.72   2.96
-MemEff(%)       0.0     88.6    58.69   16.84
+Elapsed(min)    0.17    486.08  6.96    23.49
+TimeEff(%)      0.0     4.8     0.06    0.24
+CPUEff(%)       78.9    99.8    98.40   1.71
+MemEff(%)       0.0     8.7     32.60   12.02
 
 Log-file line-count frequencies (lines → #files):
-    19 → 1246
+    19 → 1271
 ```
 ### Cleanup
 ```bash
@@ -555,7 +554,6 @@ tar -cvzf Preprocessing_Intermediate_Files.tar.gz Preprocessing_Intermediate_Fil
 exit
 ```
 ```console
-...
 Preprocessing_Intermediate_Files/Segments.chr11.rgfa
 Preprocessing_Intermediate_Files/Segments.chr8.rgfa
 Preprocessing_Intermediate_Files/QueryOnly.Segments.chr10.rgfa
@@ -567,120 +565,7 @@ Preprocessing_Intermediate_Files/UpstreamArray.RefOnly.Segments.chr10.pkl
 Preprocessing_Intermediate_Files/Links.chr2.rgfa
 Preprocessing_Intermediate_Files/QueryOnly.Segments.chr11.pkl
 ```
-
-
-
-
-## Testing optimized conversion on chr19
-I am going to take the pre-computeted conversion files and use them as a test set to confirm 
-the building of databases and conversion is working as expected. Using the new `ixchel_opt.py` script, which is
-just a standalone piece for testing the conversion process. If it works I'll integrate it into the main ixchel.py script.
-### prep chr19 test pre-converted set
-```bash
-cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
-
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-cat split_conversions/Annotations.Segments.chr19__* >Annotations.chr19.converted
-exit
-```
-### extract test set just for chr19
-```bash
-cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
-
-awk -F "\t" '{print $9"\t"$10"\t"$6"\tCG\t0\t0\t0\t0"}' Annotations.chr19.converted > Annotations.chr19.graph.methyl
-```
-### Sort test set methylation file
-```bash
-cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
-
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-sort -t$'\t' -k1,1 -k2,2n Annotations.chr19.graph.methyl \
-  > Annotations.chr19.sorted.graph.methyl
-exit
-```
-### build the database for chr19
-```bash
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-
-eval $( spack load --sh python@3.7.3 )
-python3 /scratch/hllab/Juan/Ixchel/Dev_Code_Pieces/ixchel_opt.py build_db Annotations.chr19.converted Annotations.chr19.converted.db
-
-exit
-```
-```console
-[build_db] opening Annotations.chr19.converted.db
-  inserted 5000000 rows so far
-  inserted 10000000 rows so far
-  inserted 15000000 rows so far
-  inserted 20000000 rows so far
-  inserted 25000000 rows so far
-  inserted total 27730807 rows
-[build_db] complete
-```
-### Run test set conversion
-```bash
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-
-eval $( spack load --sh python@3.7.3 )
-python3 /scratch/hllab/Juan/Ixchel/Dev_Code_Pieces/ixchel_opt.py convert_methyl_optimized Annotations.chr19.sorted.graph.methyl Annotations.chr19.converted.db Annotations.chr19.methylC
-
-exit
-```
-```console
-[convert] opening DB Annotations.chr19.converted.db in WAL mode
-[convert] done, output → Annotations.chr19.methylC
-```
-### prep the test set for comparison
-```bash
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-sort -t $'\t' -k1,1 -k2,2n Annotations.chr19.converted > TESTING
-sort -t $'\t' -k1,1 -k2,2n Annotations.chr19.methylC | sed s/CG/C/g > TESTING2
-exit
-```
-### Compare the two files
-```bash
-diff TESTING TESTING2
-```
-```console
-```
-empty output means they are identical, confirm by md5sum
-```bash
-md5sum TESTING
-md5sum TESTING2
-```
-```console
-6995a491281083f38846e53d9756c3f8  TESTING
-6995a491281083f38846e53d9756c3f8  TESTING2
-```
-They are the same. Excellent.
-### Cleanup
-```bash
-cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
-
-mkdir -p Dev_Testing
-mv Annotations.chr19.converted Annotations.chr19.converted.db Annotations.chr19.sorted.graph.methyl Annotations.chr19.methylC Dev_Testing/
-mv Annotations.chr19.graph.methyl Dev_Testing/
-mv TESTING TESTING2 Dev_Testing/
-
-# comrepss the dev testing directory
-srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
-tar -cvzf Dev_Testing.tar.gz Dev_Testing/
-exit
-```
-```console
-Dev_Testing/
-Dev_Testing/Annotations.chr19.graph.methyl
-Dev_Testing/Annotations.chr19.converted.db
-Dev_Testing/Annotations.chr19.converted
-Dev_Testing/TESTING2
-Dev_Testing/Annotations.chr19.methylC
-Dev_Testing/TESTING
-Dev_Testing/Annotations.chr19.sorted.graph.methyl
-```
-
-
-
-
+--- CLEANUP PAUSED HERE ---
 
 
 ## prepare lookups
@@ -692,6 +577,48 @@ srun --mem=16000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash
 cat split_conversions/*.converted >Annotations.converted
 exit
 ```
+### Breakdown of flags
+```bash
+cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
+
+srun --mem=32000 --cpus-per-task=1 -J interactive -p interactive --pty /bin/bash -l
+
+cut -f8 Annotations.converted | sort | uniq -c
+
+exit
+```
+```console
+ 466678 1
+2419485 100
+  39737 102
+ 639097 114
+ 193120 118
+1156870976 3
+9421558 34
+ 548840 38
+ 242873 42
+9632499 46
+  17107 5
+13586989 7
+58918028 96
+5036482 98
+```
+| %      | Count          | Code |
+|--------|----------------|------|
+| 0.0%   | 466,678        | 1    |
+| 0.2%   | 2,419,485      | 100  |
+| 0.0%   | 39,737         | 102  |
+| 0.1%   | 639,097        | 114  |
+| 0.0%   | 193,120        | 118  |
+| 92.0%  | 1,156,870,976  | 3    |
+| 0.7%   | 9,421,558      | 34   |
+| 0.0%   | 548,840        | 38   |
+| 0.0%   | 242,873        | 42   |
+| 0.8%   | 9,632,499      | 46   |
+| 0.0%   | 17,107         | 5    |
+| 1.1%   | 13,586,989     | 7    |
+| 4.7%   | 58,918,028     | 96   |
+| 0.4%   | 5,036,482      | 98   |
 ### Build the database
 ```bash
 cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
@@ -699,21 +626,15 @@ cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
 sbatch /scratch/hllab/Juan/JuanMacias_General_Code/Pangenomic/run_Ixchel_Build_DB.sh Annotations.converted Annotations.converted.db
 ```
 ```console
-Submitted batch job 22866164
+Submitted batch job 22933394
 ```
+--- PAUSED HERE ---
 #### Check the status of the jobs
 ```bash
 cd /scratch/hllab/Juan/Ixchel_Dev_Tests/Processs_hprc_v1_1_mc_chm13
-bash /scratch/hllab/Juan/JuanMacias_General_Code/Job_Management/run_check_jobs_with_reportseff.sh 22866164
+bash /scratch/hllab/Juan/JuanMacias_General_Code/Job_Management/run_check_jobs_with_reportseff.sh 22933394
 ```
 ```console
-Efficiency report for job ID: 22866164
-
-     JobID    State       Elapsed  TimeEff   CPUEff   MemEff 
-  22866164  COMPLETED    02:41:53   1.6%     65.2%    36.7%
-
-Log lengths:
-253 slurm-22866164.out
 ```
 ### Cleanup
 ```bash
